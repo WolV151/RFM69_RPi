@@ -29,7 +29,7 @@ unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned cha
     PAYLOADLEN = 0;
     wiringPiSetupPhys();
     pinMode(rstPin, OUTPUT);
-    wiringPiSPISetup(spiBus, 4000000);
+    wiringPiSPISetup(spiBus, 1000000);
     printf("%d",_powerLevel);
     const unsigned char CONFIG[][2] =
     {
@@ -82,7 +82,7 @@ unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned cha
     do writeReg(REG_SYNCVALUE1, 0xAA); while (readReg(REG_SYNCVALUE1) != 0xaa && millis()-start < timeout);
     start = millis();
     do writeReg(REG_SYNCVALUE1, 0x55); while (readReg(REG_SYNCVALUE1) != 0x55 && millis()-start < timeout);
-
+    printf("%d%d",start,millis()-start);
     for (unsigned char i = 0; CONFIG[i][0] != 255; i++)
         writeReg(CONFIG[i][0], CONFIG[i][1]);
     
