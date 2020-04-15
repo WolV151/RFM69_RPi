@@ -30,6 +30,7 @@ unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned cha
     wiringPiSetupPhys();
     pinMode(rstPin, OUTPUT);
     wiringPiSPISetup(spiBus, 4000000);
+    printf("%d",_powerLevel);
     const unsigned char CONFIG[][2] =
     {
         /* 0x01 */ { REG_OPMODE, RF_OPMODE_SEQUENCER_ON | RF_OPMODE_LISTEN_OFF | RF_OPMODE_STANDBY },
@@ -94,7 +95,7 @@ unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned cha
     if (millis()-start >= timeout)
         return false;
     wiringPiISR(intPin, INT_EDGE_RISING, isr0);
-
+    printf("%d",_powerLevel);
     _address = ID;
     return true;
 }
