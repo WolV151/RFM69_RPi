@@ -1,5 +1,5 @@
 prog: main.o RFM69.o
-	gcc -o prog main.o RFM69.o
+	gcc -o prog main.o RFM69.o -lwiringPi
 
 main.o: main.c
 	gcc -c main.c
