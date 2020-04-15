@@ -102,7 +102,7 @@ void encrypt(const char* key)
     setMode(RF69_MODE_STANDBY);
     if (key != 0)
     {
-        wiringPiSPIDataRW(0, REG_AESKEY1 | 0x80, 1);
+        wiringPiSPIDataRW(0, &REG_AESKEY1 | 0x80, 1);
         for (unsigned char i = 0; i < 16; i++)
             wiringPiSPIDataRW(0, &key[i], 1);
     }
@@ -114,7 +114,7 @@ void spyMode(bool onOff=true); //-------//
 void promiscuous(bool onOff=true); //deprecated, replaced with spyMode()*/
 void setHighPower(bool onOFF) // has to be called after initialize() for RFM69HW
 {
-    _isRFM69HW = onOff;
+    _isRFM69HW = onOFF;
     writeReg(REG_OCP, _isRFM69HW ? RF_OCP_OFF : RF_OCP_ON);
     if (_isRFM69HW) // turning ON
         writeReg(REG_PALEVEL, (readReg(REG_PALEVEL) & 0x1F) | RF_PALEVEL_PA1_ON | RF_PALEVEL_PA2_ON); // enable P1 & P2 amplifier stages
@@ -152,6 +152,7 @@ void setMode(unsigned char mode)
             break;
         default:
             return;
+    }
 }
 void setHighPowerRegs(bool onOff)
 {
@@ -161,13 +162,13 @@ void setHighPowerRegs(bool onOff)
 //void interruptHandler();
 unsigned char readReg(unsigned char addr)
 {
-    char data[2]=0;
+    char data[2]={0};
     data[0]=addr&0x7F;
     return wiringPiSPIDataRW(0, data, 2);
 }
 void writeReg(unsigned char addr, unsigned char val)
 {
-    char data[2]=0;
+    char data[2]={0};
     data[0]=addr|0x80;
     data[1]=val;
     wiringPiSPIDataRW(0, data, 2);
