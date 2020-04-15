@@ -5,20 +5,20 @@
 //#include "GPIOMap.h"
 #include "RFM69registers.h"
 
-uint8_t _powerLevel = 31;
+unsigned char _powerLevel = 31;
 bool _isRFM69HW = 0;
-uint8_t _mode = RF69_MODE_RX;
-uint16_t _address;
+unsigned char _mode = RF69_MODE_RX;
+unsigned short _address;
 bool _haveData = 0;
 
-uint8_t initialize(uint8_t freqBand, uint16_t ID, uint8_t networkID=1, uint8_t intPin = 18, uint8_t rstPin = 29, uint8_t spiBus = 0)
+unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned char networkID=1, unsigned char intPin = 18, unsigned char rstPin = 29, unsigned char spiBus = 0)
 {
     wiringPiSetupPhys();
     //pinMode(intPin, INPUT);
     pinMode(rstPin, OUTPUT);
     //pinMode(rstPin, OUTPUT);
     wiringPiSPISetup(spiBus, 4000000);
-    const uint8_t CONFIG[][2] =
+    const unsigned char CONFIG[][2] =
     {
         /* 0x01 */ { REG_OPMODE, RF_OPMODE_SEQUENCER_ON | RF_OPMODE_LISTEN_OFF | RF_OPMODE_STANDBY },
         /* 0x02 */ { REG_DATAMODUL, RF_DATAMODUL_DATAMODE_PACKET | RF_DATAMODUL_MODULATIONTYPE_FSK | RF_DATAMODUL_MODULATIONSHAPING_00 }, // no shaping
@@ -27,9 +27,9 @@ uint8_t initialize(uint8_t freqBand, uint16_t ID, uint8_t networkID=1, uint8_t i
         /* 0x05 */ { REG_FDEVMSB, RF_FDEVMSB_50000}, // default: 5KHz, (FDEV + BitRate / 2 <= 500KHz)
         /* 0x06 */ { REG_FDEVLSB, RF_FDEVLSB_50000},
 
-        /* 0x07 */ { REG_FRFMSB, (uint8_t) (freqBand==RF69_315MHZ ? RF_FRFMSB_315 : (freqBand==RF69_433MHZ ? RF_FRFMSB_433 : (freqBand==RF69_868MHZ ? RF_FRFMSB_868 : RF_FRFMSB_915))) },
-        /* 0x08 */ { REG_FRFMID, (uint8_t) (freqBand==RF69_315MHZ ? RF_FRFMID_315 : (freqBand==RF69_433MHZ ? RF_FRFMID_433 : (freqBand==RF69_868MHZ ? RF_FRFMID_868 : RF_FRFMID_915))) },
-        /* 0x09 */ { REG_FRFLSB, (uint8_t) (freqBand==RF69_315MHZ ? RF_FRFLSB_315 : (freqBand==RF69_433MHZ ? RF_FRFLSB_433 : (freqBand==RF69_868MHZ ? RF_FRFLSB_868 : RF_FRFLSB_915))) },
+        /* 0x07 */ { REG_FRFMSB, (unsigned char) (freqBand==RF69_315MHZ ? RF_FRFMSB_315 : (freqBand==RF69_433MHZ ? RF_FRFMSB_433 : (freqBand==RF69_868MHZ ? RF_FRFMSB_868 : RF_FRFMSB_915))) },
+        /* 0x08 */ { REG_FRFMID, (unsigned char) (freqBand==RF69_315MHZ ? RF_FRFMID_315 : (freqBand==RF69_433MHZ ? RF_FRFMID_433 : (freqBand==RF69_868MHZ ? RF_FRFMID_868 : RF_FRFMID_915))) },
+        /* 0x09 */ { REG_FRFLSB, (unsigned char) (freqBand==RF69_315MHZ ? RF_FRFLSB_315 : (freqBand==RF69_433MHZ ? RF_FRFLSB_433 : (freqBand==RF69_868MHZ ? RF_FRFLSB_868 : RF_FRFLSB_915))) },
 
         // looks like PA1 and PA2 are not implemented on RFM69W/CW, hence the max output power is 13dBm
         // +17dBm and +20dBm are possible on RFM69HW
@@ -63,14 +63,14 @@ uint8_t initialize(uint8_t freqBand, uint16_t ID, uint8_t networkID=1, uint8_t i
     };
   
     //Verify chip syncing
-    uint32_t start = millis();
-    uint8_t timeout = 50;
+    unsigned int start = millis();
+    unsigned char timeout = 50;
     
     do writeReg(REG_SYNCVALUE1, 0xAA); while (readReg(REG_SYNCVALUE1) != 0xaa && millis()-start < timeout);
     start = millis();
     do writeReg(REG_SYNCVALUE1, 0x55); while (readReg(REG_SYNCVALUE1) != 0x55 && millis()-start < timeout);
 
-    for (uint8_t i = 0; CONFIG[i][0] != 255; i++)
+    for (unsigned char i = 0; CONFIG[i][0] != 255; i++)
         writeReg(CONFIG[i][0], CONFIG[i][1]);
     
     encrypt(0);
@@ -86,30 +86,30 @@ uint8_t initialize(uint8_t freqBand, uint16_t ID, uint8_t networkID=1, uint8_t i
     _address = ID;
     return true;
 }
-/*void setAddress(uint16_t addr);
-void setNetwork(uint8_t networkID);
+/*void setAddress(unsigned short addr);
+void setNetwork(unsigned char networkID);
 bool canSend();
-void send(uint16_t toAddress, const void* buffer, uint8_t bufferSize, bool requestACK=false);
-bool sendWithRetry(uint16_t toAddress, const void* buffer, uint8_t bufferSize, uint8_t retries=2, uint8_t retryWaitTime=RFM69_ACK_TIMEOUT);
+void send(unsigned short toAddress, const void* buffer, unsigned char bufferSize, bool requestACK=false);
+bool sendWithRetry(unsigned short toAddress, const void* buffer, unsigned char bufferSize, unsigned char retries=2, unsigned char retryWaitTime=RFM69_ACK_TIMEOUT);
 bool receiveDone();
-bool ACKReceived(uint16_t fromNodeID);
+bool ACKReceived(unsigned short fromNodeID);
 bool ACKRequested();
-void sendACK(const void* buffer = "", uint8_t bufferSize=0);
-int32_t getFrequency(); //-------//
-void setFrequency(uint32_t freqHz);*/
+void sendACK(const void* buffer = "", unsigned char bufferSize=0);
+int getFrequency(); //-------//
+void setFrequency(unsigned int freqHz);*/
 void encrypt(const char* key)
 {
     setMode(RF69_MODE_STANDBY);
     if (key != 0)
     {
         wiringPiSPIDataRW(0, REG_AESKEY1 | 0x80, 1);
-        for (uint8_t i = 0; i < 16; i++)
+        for (unsigned char i = 0; i < 16; i++)
             wiringPiSPIDataRW(0, &key[i], 1);
     }
     writeReg(REG_PACKETCONFIG2, (readReg(REG_PACKETCONFIG2) & 0xFE) | (key ? 1 : 0));
 }
-/*void setCS(uint8_t newSPISlaveSelect); //-------//
-int16_t readRSSI(bool forceTrigger=false); // *current* signal strength indicator; e.g. < -90dBm says the frequency channel is free + ready to transmit
+/*void setCS(unsigned char newSPISlaveSelect); //-------//
+short readRSSI(bool forceTrigger=false); // *current* signal strength indicator; e.g. < -90dBm says the frequency channel is free + ready to transmit
 void spyMode(bool onOff=true); //-------//
 void promiscuous(bool onOff=true); //deprecated, replaced with spyMode()*/
 void setHighPower(bool onOFF=true) // has to be called after initialize() for RFM69HW
@@ -121,13 +121,13 @@ void setHighPower(bool onOFF=true) // has to be called after initialize() for RF
     else
         writeReg(REG_PALEVEL, RF_PALEVEL_PA0_ON | RF_PALEVEL_PA1_OFF | RF_PALEVEL_PA2_OFF | _powerLevel); // enable P0 only
 }
-/*void setPowerLevel(uint8_t level); // reduce/increase transmit power level
+/*void setPowerLevel(unsigned char level); // reduce/increase transmit power level
 void sleep();
-uint8_t readTemperature(uint8_t calFactor=0); // get CMOS temperature (8bit)
+unsigned char readTemperature(unsigned char calFactor=0); // get CMOS temperature (8bit)
 void rcCalibration();
-void sendFrame(uint16_t toAddress, const void* buffer, uint8_t size, bool requestACK=false, bool sendACK=false);
+void sendFrame(unsigned short toAddress, const void* buffer, unsigned char size, bool requestACK=false, bool sendACK=false);
 void receiveBegin();*/
-void setMode(uint8_t mode)
+void setMode(unsigned char mode)
 {
     if (mode == _mode)
         return;
@@ -159,13 +159,13 @@ void setHighPowerRegs(bool onOff)
     writeReg(REG_TESTPA2, onOff ? 0x7C : 0x70);
 }
 //void interruptHandler();
-uint8_t readReg(uint8_t addr)
+unsigned char readReg(unsigned char addr)
 {
     char data[2]=0;
     data[0]=addr&0x7F;
     return wiringPiSPIDataRW(0, data, 2);
 }
-void writeReg(uint8_t addr, uint8_t val)
+void writeReg(unsigned char addr, unsigned char val)
 {
     char data[2]=0;
     data[0]=addr|0x80;
