@@ -1,6 +1,7 @@
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
 #include <stdbool.h> 
+#include <stdin.h>
 #include "RFM69.h"
 
 unsigned char _powerLevel;
@@ -127,12 +128,15 @@ bool sendWithRetry(unsigned short toAddress, const void* buffer, unsigned char b
     unsigned int sentTime;
     for (unsigned char i = 0; i <= retries; i++)
     {
+        printf("%d",i);
         send(toAddress, buffer, bufferSize, true);
+        printf("%d",i);
         sentTime = millis();
         while (millis() - sentTime < retryWaitTime)
         {
             if (ACKReceived(toAddress)) return true;
         }
+        printf("%d\n",i);
     }
     return false;
 }
