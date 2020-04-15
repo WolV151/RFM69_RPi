@@ -1,5 +1,6 @@
-//#include "RFM69.h"
+#include "RFM69.h"
 #include <stdio.h>
+#include <string.h>
 
 //#define FREQUENCY     RF69_868MHZ
 
@@ -15,7 +16,7 @@ int main(void)
         if(strstr(string, "Animation"))
         {
             //if(sendWithRetry(2,"animation1,15",13,3,10))
-            printf("Ack Received");
+            printf("Ack Received\n");
             //else
                 //printf("No Ack Received");
         }
