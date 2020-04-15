@@ -3,12 +3,12 @@
 #include <stdbool.h> 
 #include "RFM69.h"
 
-unsigned char _powerLevel = 31;
-bool _isRFM69HW = 0;
-unsigned char _mode = RF69_MODE_RX;
+unsigned char _powerLevel;
+bool _isRFM69HW;
+unsigned char _mode;
 unsigned short _address;
-bool _haveData = 0;
-unsigned char PAYLOADLEN = 0;
+bool _haveData;
+unsigned char PAYLOADLEN;
 unsigned short SENDERID;
 unsigned short TARGETID;
 bool _spyMode;
@@ -20,6 +20,12 @@ unsigned char DATA[RF69_MAX_DATA_LEN+1];
 
 unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned char networkID, unsigned char intPin, unsigned char rstPin, unsigned char spiBus)
 {
+    _powerLevel = 31;
+    _isRFM69HW = 0;
+    _mode = RF69_MODE_RX;
+    _address;
+    _haveData = 0;
+    PAYLOADLEN = 0
     wiringPiSetupPhys();
     pinMode(rstPin, OUTPUT);
     wiringPiSPISetup(spiBus, 4000000);
