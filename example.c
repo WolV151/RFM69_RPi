@@ -1,5 +1,6 @@
 #include "RFM69.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 //#define FREQUENCY     RF69_868MHZ
