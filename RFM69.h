@@ -30,7 +30,7 @@
 
 #define RFM69_ACK_TIMEOUT   30  // 30ms roundtrip req for 61byte packets
 
-unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned char networkID=1); //-------//
+unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned char networkID); //-------//
 /*void setAddress(unsigned short addr);
 void setNetwork(unsigned char networkID);
 bool canSend();
@@ -47,7 +47,7 @@ void encrypt(const char* key);
 short readRSSI(bool forceTrigger=false); // *current* signal strength indicator; e.g. < -90dBm says the frequency channel is free + ready to transmit
 void spyMode(bool onOff=true); //-------//
 void promiscuous(bool onOff=true); //deprecated, replaced with spyMode()*/
-void setHighPower(bool onOFF=true); // has to be called after initialize() for RFM69HW
+void setHighPower(bool onOFF); // has to be called after initialize() for RFM69HW
 /*void setPowerLevel(unsigned char level); // reduce/increase transmit power level
 void sleep();
 unsigned char readTemperature(unsigned char calFactor=0); // get CMOS temperature (8bit)
