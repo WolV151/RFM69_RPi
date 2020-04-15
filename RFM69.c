@@ -401,7 +401,7 @@ unsigned char readReg(unsigned char addr)
     data[0]=addr&0x7F;
     wiringPiSPIDataRW(0, data, 2);
     printf("%d", data[0]);
-    return 
+    return data[0];
 }
 void writeReg(unsigned char addr, unsigned char val)
 {
