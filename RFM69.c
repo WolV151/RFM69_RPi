@@ -118,9 +118,13 @@ bool canSend()
 }
 void send(unsigned short toAddress, const void* buffer, unsigned char bufferSize, bool requestACK)
 {
+    printf("%d",toAddress);
     writeReg(REG_PACKETCONFIG2, (readReg(REG_PACKETCONFIG2) & 0xFB) | RF_PACKET2_RXRESTART); // avoid RX deadlocks
+    printf("%d",toAddress);
     unsigned int now = millis();
+    printf("%d",toAddress);
     while (!canSend() && millis() - now < RF69_CSMA_LIMIT_MS) receiveDone();
+    printf("%d",toAddress);
     sendFrame(toAddress, buffer, bufferSize, requestACK, false);
 }
 bool sendWithRetry(unsigned short toAddress, const void* buffer, unsigned char bufferSize, unsigned char retries, unsigned char retryWaitTime)

@@ -17,10 +17,11 @@ int main(void)
         if(strstr(string, "Animation"))
         {
             printf("Senden: \n");
-            if(sendWithRetry(2,"animation1,15",13,3,10))
-                printf("Ack Received\n");
-            else
-                printf("No Ack Received");
+            //if(sendWithRetry(2,"animation1,15",13,3,10))
+                //printf("Ack Received\n");
+            //else
+                //printf("No Ack Received");
+            send(2,"animation1,15",13,1);
         }
     }
     return 0;
