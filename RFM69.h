@@ -35,25 +35,23 @@ unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned cha
 void setAddress(unsigned short addr);
 void setNetwork(unsigned char networkID);
 bool canSend();
-void send(unsigned short toAddress, const void* buffer, unsigned char bufferSize, bool requestACK=false);
-bool sendWithRetry(unsigned short toAddress, const void* buffer, unsigned char bufferSize, unsigned char retries=2, unsigned char retryWaitTime=RFM69_ACK_TIMEOUT);
+void send(unsigned short toAddress, const void* buffer, unsigned char bufferSize, bool requestACK);
+bool sendWithRetry(unsigned short toAddress, const void* buffer, unsigned char bufferSize, unsigned char retries, unsigned char retryWaitTime);
 bool receiveDone();
-/*bool ACKReceived(unsigned short fromNodeID);
+bool ACKReceived(unsigned short fromNodeID);
 bool ACKRequested();
-void sendACK(const void* buffer = "", unsigned char bufferSize=0);
+void sendACK(const void* buffer, unsigned char bufferSize);
 int getFrequency(); //-------//
-void setFrequency(unsigned int freqHz);*/
+void setFrequency(unsigned int freqHz);
 void encrypt(const char* key);
-//void setCS(unsigned char newSPISlaveSelect); //-------//
-short readRSSI(bool forceTrigger=false); // *current* signal strength indicator; e.g. < -90dBm says the frequency channel is free + ready to transmit
-/*void spyMode(bool onOff=true); //-------//
-void promiscuous(bool onOff=true); //deprecated, replaced with spyMode()*/
+short readRSSI(bool forceTrigger); // *current* signal strength indicator; e.g. < -90dBm says the frequency channel is free + ready to transmit
+void spyMode(bool onOff); //-------//
 void setHighPower(bool onOFF); // has to be called after initialize() for RFM69HW
-/*void setPowerLevel(unsigned char level); // reduce/increase transmit power level
+void setPowerLevel(unsigned char level); // reduce/increase transmit power level
 void sleep();
-unsigned char readTemperature(unsigned char calFactor=0); // get CMOS temperature (8bit)
+unsigned char readTemperature(unsigned char calFactor); // get CMOS temperature (8bit)
 void rcCalibration();
-void sendFrame(unsigned short toAddress, const void* buffer, unsigned char size, bool requestACK=false, bool sendACK=false);*/
+void sendFrame(unsigned short toAddress, const void* buffer, unsigned char bufferSize, bool requestACK, bool sendACK)
 void receiveBegin();
 void setMode(unsigned char mode);
 void setHighPowerRegs(bool onOff);

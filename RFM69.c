@@ -2,8 +2,6 @@
 #include <wiringPiSPI.h>
 #include <stdbool.h> 
 #include "RFM69.h"
-//#include "GPIOMap.h"
-//#include "RFM69registers.h"
 
 unsigned char _powerLevel = 31;
 bool _isRFM69HW = 0;
@@ -23,9 +21,7 @@ unsigned char DATA[RF69_MAX_DATA_LEN+1];
 unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned char networkID, unsigned char intPin, unsigned char rstPin, unsigned char spiBus)
 {
     wiringPiSetupPhys();
-    //pinMode(intPin, INPUT);
     pinMode(rstPin, OUTPUT);
-    //pinMode(rstPin, OUTPUT);
     wiringPiSPISetup(spiBus, 4000000);
     const unsigned char CONFIG[][2] =
     {
@@ -120,7 +116,20 @@ void send(unsigned short toAddress, const void* buffer, unsigned char bufferSize
     while (!canSend() && millis() - now < RF69_CSMA_LIMIT_MS) receiveDone();
     sendFrame(toAddress, buffer, bufferSize, requestACK, false);
 }
-//bool sendWithRetry(unsigned short toAddress, const void* buffer, unsigned char bufferSize, unsigned char retries=2, unsigned char retryWaitTime=RFM69_ACK_TIMEOUT);
+bool sendWithRetry(unsigned short toAddress, const void* buffer, unsigned char bufferSize, unsigned char retries, unsigned char retryWaitTime)
+{
+    unsigned int sentTime;
+    for (unsigned char i = 0; i <= retries; i++)
+    {
+        send(toAddress, buffer, bufferSize, true);
+        sentTime = millis();
+        while (millis() - sentTime < retryWaitTime)
+        {
+            if (ACKReceived(toAddress)) return true;
+        }
+    }
+    return false;
+}
 bool receiveDone()
 {
     if (_haveData) 
@@ -140,11 +149,49 @@ bool receiveDone()
     receiveBegin();
     return false;
 }
-/*bool ACKReceived(unsigned short fromNodeID);
-bool ACKRequested();
-void sendACK(const void* buffer = "", unsigned char bufferSize=0);
-int getFrequency(); //-------//
-void setFrequency(unsigned int freqHz);*/
+bool ACKReceived(unsigned short fromNodeID)
+{
+    if (receiveDone())
+        return (SENDERID == fromNodeID || fromNodeID == RF69_BROADCAST_ADDR) && ACK_RECEIVED;
+    return false;
+}
+bool ACKRequested()
+{
+    return ACK_REQUESTED && (TARGETID == _address);
+}
+void sendACK(const void* buffer, unsigned char bufferSize)
+{
+    ACK_REQUESTED = 0;   // TWS added to make sure we don't end up in a timing race and infinite loop sending Acks
+    unsigned short sender = SENDERID;
+    short _RSSI = RSSI; // save payload received RSSI value
+    writeReg(REG_PACKETCONFIG2, (readReg(REG_PACKETCONFIG2) & 0xFB) | RF_PACKET2_RXRESTART); // avoid RX deadlocks
+    unsigned int now = millis();
+    while (!canSend() && millis() - now < RF69_CSMA_LIMIT_MS) receiveDone();
+    SENDERID = sender;    // TWS: Restore SenderID after it gets wiped out by receiveDone()
+    sendFrame(sender, buffer, bufferSize, false, true);
+    RSSI = _RSSI; // restore payload RSSI
+}
+int getFrequency() //-------//
+{
+    return RF69_FSTEP * (((unsigned int) readReg(REG_FRFMSB) << 16) + ((unsigned short) readReg(REG_FRFMID) << 8) + readReg(REG_FRFLSB));
+}
+void setFrequency(unsigned int freqHz)
+{
+    unsigned char oldMode = _mode;
+    if (oldMode == RF69_MODE_TX) 
+    {
+        setMode(RF69_MODE_RX);
+    }
+    freqHz /= RF69_FSTEP; // divide down by FSTEP to get FRF
+    writeReg(REG_FRFMSB, freqHz >> 16);
+    writeReg(REG_FRFMID, freqHz >> 8);
+    writeReg(REG_FRFLSB, freqHz);
+    if (oldMode == RF69_MODE_RX) 
+    {
+        setMode(RF69_MODE_SYNTH);
+    }
+    setMode(oldMode);
+}
 void encrypt(const char* key)
 {
     setMode(RF69_MODE_STANDBY);
@@ -157,7 +204,6 @@ void encrypt(const char* key)
     }
     writeReg(REG_PACKETCONFIG2, (readReg(REG_PACKETCONFIG2) & 0xFE) | (key ? 1 : 0));
 }
-//void setCS(unsigned char newSPISlaveSelect); //-------//
 short readRSSI(bool forceTrigger) // *current* signal strength indicator; e.g. < -90dBm says the frequency channel is free + ready to transmit
 {
     short rssi = 0;
@@ -171,8 +217,10 @@ short readRSSI(bool forceTrigger) // *current* signal strength indicator; e.g. <
     rssi >>= 1;
     return rssi;
 }
-/*void spyMode(bool onOff=true); //-------//
-void promiscuous(bool onOff=true); //deprecated, replaced with spyMode()*/
+void spyMode(bool onOff) //-------//
+{
+    _spyMode = onOff;
+}
 void setHighPower(bool onOFF) // has to be called after initialize() for RFM69HW
 {
     _isRFM69HW = onOFF;
@@ -182,11 +230,70 @@ void setHighPower(bool onOFF) // has to be called after initialize() for RFM69HW
     else
         writeReg(REG_PALEVEL, RF_PALEVEL_PA0_ON | RF_PALEVEL_PA1_OFF | RF_PALEVEL_PA2_OFF | _powerLevel); // enable P0 only
 }
-/*void setPowerLevel(unsigned char level); // reduce/increase transmit power level
-void sleep();
-unsigned char readTemperature(unsigned char calFactor=0); // get CMOS temperature (8bit)
-void rcCalibration();
-void sendFrame(unsigned short toAddress, const void* buffer, unsigned char size, bool requestACK=false, bool sendACK=false);*/
+void setPowerLevel(unsigned char level) // reduce/increase transmit power level
+{
+    _powerLevel = (powerLevel > 31 ? 31 : powerLevel);
+    if (_isRFM69HW) _powerLevel /= 2;
+    writeReg(REG_PALEVEL, (readReg(REG_PALEVEL) & 0xE0) | _powerLevel);
+}
+void sleep()
+{
+    setMode(RF69_MODE_SLEEP);
+}
+unsigned char readTemperature(unsigned char calFactor) // get CMOS temperature (8bit)
+{
+    setMode(RF69_MODE_STANDBY);
+    writeReg(REG_TEMP1, RF_TEMP1_MEAS_START);
+    while ((readReg(REG_TEMP1) & RF_TEMP1_MEAS_RUNNING));
+    return ~readReg(REG_TEMP2) + COURSE_TEMP_COEF + calFactor;
+}
+void rcCalibration()
+{
+    writeReg(REG_OSC1, RF_OSC1_RCCAL_START);
+    while ((readReg(REG_OSC1) & RF_OSC1_RCCAL_DONE) == 0x00);
+}
+void sendFrame(unsigned short toAddress, const void* buffer, unsigned char bufferSize, bool requestACK, bool sendACK)
+{
+    setMode(RF69_MODE_STANDBY); // turn off receiver to prevent reception while filling fifo
+    while ((readReg(REG_IRQFLAGS1) & RF_IRQFLAGS1_MODEREADY) == 0x00); // wait for ModeReady
+    if (bufferSize > RF69_MAX_DATA_LEN) bufferSize = RF69_MAX_DATA_LEN;
+
+    // control byte
+    unsigned char CTLbyte = 0x00;
+    if (sendACK)
+        CTLbyte = RFM69_CTL_SENDACK;
+    else if (requestACK)
+        CTLbyte = RFM69_CTL_REQACK;
+
+    if (toAddress > 0xFF) CTLbyte |= (toAddress & 0x300) >> 6; //assign last 2 bits of address if > 255
+    if (_address > 0xFF) CTLbyte |= (_address & 0x300) >> 8;   //assign last 2 bits of address if > 255
+
+    // write to FIFO
+    unsigned char data;
+    data = REG_FIFO | 0x80;
+    wiringPiSPIDataRW(0, &data, 1);
+    data = bufferSize + 3;
+    wiringPiSPIDataRW(0, &data, 1);
+    data = (unsigned char)toAddress;
+    wiringPiSPIDataRW(0, &data, 1);
+    data = (unsigned char)_address;
+    wiringPiSPIDataRW(0, &data, 1);
+    data = CTLbyte;
+    wiringPiSPIDataRW(0, &data, 1);
+
+    for (unsigned char i = 0; i < bufferSize; i++)
+    {
+        data = ((unsigned char*) buffer)[i];
+        wiringPiSPIDataRW(0, &data, 1);
+    }
+
+    // no need to wait for transmit mode to be ready since its handled by the radio
+    setMode(RF69_MODE_TX);
+    //uint32_t txStart = millis();
+    //while (digitalRead(_interruptPin) == 0 && millis() - txStart < RF69_TX_LIMIT_MS); // wait for DIO0 to turn HIGH signalling transmission finish
+    while ((readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PACKETSENT) == 0x00); // wait for PacketSent
+    setMode(RF69_MODE_STANDBY);
+}
 void receiveBegin()
 {
     DATALEN = 0;
@@ -281,8 +388,8 @@ void writeReg(unsigned char addr, unsigned char val)
     data[1]=val;
     wiringPiSPIDataRW(0, data, 2);
 }
-/*void readAllRegs();
-bool shutdown();*/
+//void readAllRegs();
+//bool shutdown();
 void isr0()
 {
     _haveData = true;
