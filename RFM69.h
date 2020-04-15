@@ -31,7 +31,7 @@
 #define RFM69_ACK_TIMEOUT   30  // 30ms roundtrip req for 61byte packets
 
 uint8_t initialize(uint8_t freqBand, uint16_t ID, uint8_t networkID=1); //-------//
-void setAddress(uint16_t addr);
+/*void setAddress(uint16_t addr);
 void setNetwork(uint8_t networkID);
 bool canSend();
 void send(uint16_t toAddress, const void* buffer, uint8_t bufferSize, bool requestACK=false);
@@ -41,24 +41,24 @@ bool ACKReceived(uint16_t fromNodeID);
 bool ACKRequested();
 void sendACK(const void* buffer = "", uint8_t bufferSize=0);
 int32_t getFrequency(); //-------//
-void setFrequency(uint32_t freqHz);
+void setFrequency(uint32_t freqHz);*/
 void encrypt(const char* key);
-void setCS(uint8_t newSPISlaveSelect); //-------//
+/*void setCS(uint8_t newSPISlaveSelect); //-------//
 int16_t readRSSI(bool forceTrigger=false); // *current* signal strength indicator; e.g. < -90dBm says the frequency channel is free + ready to transmit
 void spyMode(bool onOff=true); //-------//
-void promiscuous(bool onOff=true); //deprecated, replaced with spyMode()
+void promiscuous(bool onOff=true); //deprecated, replaced with spyMode()*/
 void setHighPower(bool onOFF=true); // has to be called after initialize() for RFM69HW
-void setPowerLevel(uint8_t level); // reduce/increase transmit power level
+/*void setPowerLevel(uint8_t level); // reduce/increase transmit power level
 void sleep();
 uint8_t readTemperature(uint8_t calFactor=0); // get CMOS temperature (8bit)
 void rcCalibration();
 void sendFrame(uint16_t toAddress, const void* buffer, uint8_t size, bool requestACK=false, bool sendACK=false);
-void receiveBegin();
+void receiveBegin();*/
 void setMode(uint8_t mode);
 void setHighPowerRegs(bool onOff);
-void interruptHandler();
+//void interruptHandler();
 uint8_t readReg(uint8_t addr);
 void writeReg(uint8_t addr, uint8_t val);
-void readAllRegs();
-bool shutdown();
+//void readAllRegs();
+//bool shutdown();
 void isr0();
