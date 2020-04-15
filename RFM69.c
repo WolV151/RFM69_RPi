@@ -83,7 +83,7 @@ unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned cha
     unsigned int start = millis();
     unsigned char timeout = 50;
     
-    do { writeReg(REG_SYNCVALUE1, 0xAA); printf("\n%d",readReg(REG_SYNCVALUE1)); } while (readReg(REG_SYNCVALUE1) != 0xaa && millis()-start < timeout);
+    do writeReg(REG_SYNCVALUE1, 0xAA); while (readReg(REG_SYNCVALUE1) != 0xaa && millis()-start < timeout);
     start = millis();
     do writeReg(REG_SYNCVALUE1, 0x55); while (readReg(REG_SYNCVALUE1) != 0x55 && millis()-start < timeout);
     printf("\n%d,%d\n",start,millis()-start);
@@ -399,8 +399,8 @@ unsigned char readReg(unsigned char addr)
 {
     char data[2]={0};
     data[0]=addr&0x7F;
-    wiringPiSPIDataRW(0, data, 2);
-    printf("%d", data[0]);
+    printf("%d\n",wiringPiSPIDataRW(0, data, 2));
+    printf("%s\n\n", data);
     return data[0];
 }
 void writeReg(unsigned char addr, unsigned char val)
