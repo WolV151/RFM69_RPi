@@ -102,7 +102,8 @@ void encrypt(const char* key)
     setMode(RF69_MODE_STANDBY);
     if (key != 0)
     {
-        wiringPiSPIDataRW(0, &(char)(REG_AESKEY1 | 0x80), 1);
+        char data = REG_AESKEY1 | 0x80;
+        wiringPiSPIDataRW(0, &data, 1);
         for (unsigned char i = 0; i < 16; i++)
             wiringPiSPIDataRW(0, &key[i], 1);
     }
