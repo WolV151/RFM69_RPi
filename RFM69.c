@@ -126,6 +126,7 @@ void send(unsigned short toAddress, const void* buffer, unsigned char bufferSize
 bool sendWithRetry(unsigned short toAddress, const void* buffer, unsigned char bufferSize, unsigned char retries, unsigned char retryWaitTime)
 {
     unsigned int sentTime;
+    printf("%d",toAddress);
     for (unsigned char i = 0; i <= retries; i++)
     {
         printf("%d",i);
