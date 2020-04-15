@@ -86,7 +86,7 @@ unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned cha
     do writeReg(REG_SYNCVALUE1, 0xAA); while (readReg(REG_SYNCVALUE1) != 0xaa && millis()-start < timeout);
     start = millis();
     do writeReg(REG_SYNCVALUE1, 0x55); while (readReg(REG_SYNCVALUE1) != 0x55 && millis()-start < timeout);
-    printf("%d%d",start,millis()-start);
+    printf("\n%d,%d\n",start,millis()-start);
     for (unsigned char i = 0; CONFIG[i][0] != 255; i++)
         writeReg(CONFIG[i][0], CONFIG[i][1]);
     
