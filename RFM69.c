@@ -1,7 +1,7 @@
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
 #include <stdbool.h> 
-#include <stdin.h>
+#include <stdio.h>
 #include "RFM69.h"
 
 unsigned char _powerLevel;
