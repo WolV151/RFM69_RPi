@@ -1,7 +1,6 @@
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
 #include <stdbool.h> 
-#include "RFM69.c"
 #include "RFM69registers.h"
 //#include "GPIOMap.h"
 
@@ -32,7 +31,7 @@
 
 #define RFM69_ACK_TIMEOUT   30  // 30ms roundtrip req for 61byte packets
 
-unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned char networkID); //-------//
+unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned char networkID, unsigned char intPin, unsigned char rstPin, unsigned char spiBus);
 /*void setAddress(unsigned short addr);
 void setNetwork(unsigned char networkID);
 bool canSend();

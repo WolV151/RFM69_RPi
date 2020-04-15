@@ -1,9 +1,9 @@
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
 #include <stdbool.h> 
-//#include "RFM69.h"
+#include "RFM69.h"
 //#include "GPIOMap.h"
-#include "RFM69registers.h"
+//#include "RFM69registers.h"
 
 unsigned char _powerLevel = 31;
 bool _isRFM69HW = 0;
