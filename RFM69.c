@@ -11,7 +11,7 @@ unsigned char _mode = RF69_MODE_RX;
 unsigned short _address;
 bool _haveData = 0;
 
-unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned char networkID=1, unsigned char intPin = 18, unsigned char rstPin = 29, unsigned char spiBus = 0)
+unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned char networkID, unsigned char intPin, unsigned char rstPin, unsigned char spiBus)
 {
     wiringPiSetupPhys();
     //pinMode(intPin, INPUT);
@@ -112,7 +112,7 @@ void encrypt(const char* key)
 short readRSSI(bool forceTrigger=false); // *current* signal strength indicator; e.g. < -90dBm says the frequency channel is free + ready to transmit
 void spyMode(bool onOff=true); //-------//
 void promiscuous(bool onOff=true); //deprecated, replaced with spyMode()*/
-void setHighPower(bool onOFF=true) // has to be called after initialize() for RFM69HW
+void setHighPower(bool onOFF) // has to be called after initialize() for RFM69HW
 {
     _isRFM69HW = onOff;
     writeReg(REG_OCP, _isRFM69HW ? RF_OCP_OFF : RF_OCP_ON);
