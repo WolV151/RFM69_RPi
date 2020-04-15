@@ -1,8 +1,8 @@
-prog: main.o RFM69.o
-	gcc -o prog main.o RFM69.o -lwiringPi
+prog: example.o RFM69.o
+	gcc -o prog example.o RFM69.o -lwiringPi
 
-main.o: main.c
-	gcc -c main.c
+example.o: example.c
+	gcc -c example.c
 
 RFM69.o: RFM69.c
 	gcc -c RFM69.c
