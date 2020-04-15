@@ -33,7 +33,7 @@ unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned cha
     delay(100);
     digitalWrite(rstPin, LOW);
     delay(100);
-    wiringPiSPISetup(spiBus, 1000000);
+    printf("%d",wiringPiSPISetup(spiBus, 1000000));
     printf("%d",_powerLevel);
     const unsigned char CONFIG[][2] =
     {
@@ -399,7 +399,9 @@ unsigned char readReg(unsigned char addr)
 {
     char data[2]={0};
     data[0]=addr&0x7F;
-    return wiringPiSPIDataRW(0, data, 2);
+    wiringPiSPIDataRW(0, data, 2);
+    printf("%d", data[0]);
+    return 
 }
 void writeReg(unsigned char addr, unsigned char val)
 {
