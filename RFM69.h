@@ -51,7 +51,7 @@ void setPowerLevel(unsigned char level); // reduce/increase transmit power level
 void sleep();
 unsigned char readTemperature(unsigned char calFactor); // get CMOS temperature (8bit)
 void rcCalibration();
-void sendFrame(unsigned short toAddress, const void* buffer, unsigned char bufferSize, bool requestACK, bool sendACK)
+void sendFrame(unsigned short toAddress, const void* buffer, unsigned char bufferSize, bool requestACK, bool sendACK);
 void receiveBegin();
 void setMode(unsigned char mode);
 void setHighPowerRegs(bool onOff);
