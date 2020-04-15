@@ -25,7 +25,7 @@ unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned cha
     _mode = RF69_MODE_RX;
     _address;
     _haveData = 0;
-    PAYLOADLEN = 0
+    PAYLOADLEN = 0;
     wiringPiSetupPhys();
     pinMode(rstPin, OUTPUT);
     wiringPiSPISetup(spiBus, 4000000);
@@ -108,7 +108,7 @@ void setNetwork(unsigned char networkID)
 }
 bool canSend()
 {
-    if (_mode == RF69_MODE_RX && PAYLOADLEN == 0 && readRSSI() < CSMA_LIMIT) // if signal stronger than -100dBm is detected assume channel activity
+    if (_mode == RF69_MODE_RX && PAYLOADLEN == 0 && readRSSI(0) < CSMA_LIMIT) // if signal stronger than -100dBm is detected assume channel activity
     {
         setMode(RF69_MODE_STANDBY);
         return true;
@@ -238,7 +238,7 @@ void setHighPower(bool onOFF) // has to be called after initialize() for RFM69HW
 }
 void setPowerLevel(unsigned char level) // reduce/increase transmit power level
 {
-    _powerLevel = (powerLevel > 31 ? 31 : powerLevel);
+    _powerLevel = (level > 31 ? 31 : level);
     if (_isRFM69HW) _powerLevel /= 2;
     writeReg(REG_PALEVEL, (readReg(REG_PALEVEL) & 0xE0) | _powerLevel);
 }
@@ -379,7 +379,7 @@ void interruptHandler()
         DATA[DATALEN] = 0; // add null at end of string
         setMode(RF69_MODE_RX);
     }
-    RSSI = readRSSI();
+    RSSI = readRSSI(0);
 }
 unsigned char readReg(unsigned char addr)
 {
