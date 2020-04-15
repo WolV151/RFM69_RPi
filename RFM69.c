@@ -10,6 +10,15 @@ bool _isRFM69HW = 0;
 unsigned char _mode = RF69_MODE_RX;
 unsigned short _address;
 bool _haveData = 0;
+unsigned char PAYLOADLEN = 0;
+unsigned short SENDERID;
+unsigned short TARGETID;
+bool _spyMode;
+unsigned char DATALEN;
+unsigned char ACK_REQUESTED;
+unsigned char ACK_RECEIVED;
+short RSSI;
+unsigned char DATA[RF69_MAX_DATA_LEN+1];
 
 unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned char networkID, unsigned char intPin, unsigned char rstPin, unsigned char spiBus)
 {
@@ -86,13 +95,52 @@ unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned cha
     _address = ID;
     return true;
 }
-/*void setAddress(unsigned short addr);
-void setNetwork(unsigned char networkID);
-bool canSend();
-void send(unsigned short toAddress, const void* buffer, unsigned char bufferSize, bool requestACK=false);
-bool sendWithRetry(unsigned short toAddress, const void* buffer, unsigned char bufferSize, unsigned char retries=2, unsigned char retryWaitTime=RFM69_ACK_TIMEOUT);
-bool receiveDone();
-bool ACKReceived(unsigned short fromNodeID);
+void setAddress(unsigned short addr)
+{
+    _address = addr;
+    writeReg(REG_NODEADRS, _address); //unused in packet mode
+}
+void setNetwork(unsigned char networkID)
+{
+    writeReg(REG_SYNCVALUE2, networkID);
+}
+bool canSend()
+{
+    if (_mode == RF69_MODE_RX && PAYLOADLEN == 0 && readRSSI() < CSMA_LIMIT) // if signal stronger than -100dBm is detected assume channel activity
+    {
+        setMode(RF69_MODE_STANDBY);
+        return true;
+    }
+    return false;
+}
+void send(unsigned short toAddress, const void* buffer, unsigned char bufferSize, bool requestACK)
+{
+    writeReg(REG_PACKETCONFIG2, (readReg(REG_PACKETCONFIG2) & 0xFB) | RF_PACKET2_RXRESTART); // avoid RX deadlocks
+    unsigned int now = millis();
+    while (!canSend() && millis() - now < RF69_CSMA_LIMIT_MS) receiveDone();
+    sendFrame(toAddress, buffer, bufferSize, requestACK, false);
+}
+//bool sendWithRetry(unsigned short toAddress, const void* buffer, unsigned char bufferSize, unsigned char retries=2, unsigned char retryWaitTime=RFM69_ACK_TIMEOUT);
+bool receiveDone()
+{
+    if (_haveData) 
+    {
+  	    _haveData = false;
+  	    interruptHandler(); 
+    }
+    if (_mode == RF69_MODE_RX && PAYLOADLEN > 0)
+    {
+        setMode(RF69_MODE_STANDBY); // enables interrupts
+        return true;
+    }
+    else if (_mode == RF69_MODE_RX) // already in RX no payload yet
+    {
+        return false;
+    }
+    receiveBegin();
+    return false;
+}
+/*bool ACKReceived(unsigned short fromNodeID);
 bool ACKRequested();
 void sendACK(const void* buffer = "", unsigned char bufferSize=0);
 int getFrequency(); //-------//
@@ -109,9 +157,21 @@ void encrypt(const char* key)
     }
     writeReg(REG_PACKETCONFIG2, (readReg(REG_PACKETCONFIG2) & 0xFE) | (key ? 1 : 0));
 }
-/*void setCS(unsigned char newSPISlaveSelect); //-------//
-short readRSSI(bool forceTrigger=false); // *current* signal strength indicator; e.g. < -90dBm says the frequency channel is free + ready to transmit
-void spyMode(bool onOff=true); //-------//
+//void setCS(unsigned char newSPISlaveSelect); //-------//
+short readRSSI(bool forceTrigger) // *current* signal strength indicator; e.g. < -90dBm says the frequency channel is free + ready to transmit
+{
+    short rssi = 0;
+    if (forceTrigger)
+    {
+        // RSSI trigger not needed if DAGC is in continuous mode
+        writeReg(REG_RSSICONFIG, RF_RSSI_START);
+        while ((readReg(REG_RSSICONFIG) & RF_RSSI_DONE) == 0x00); // wait for RSSI_Ready
+    }
+    rssi = -readReg(REG_RSSIVALUE);
+    rssi >>= 1;
+    return rssi;
+}
+/*void spyMode(bool onOff=true); //-------//
 void promiscuous(bool onOff=true); //deprecated, replaced with spyMode()*/
 void setHighPower(bool onOFF) // has to be called after initialize() for RFM69HW
 {
@@ -126,8 +186,21 @@ void setHighPower(bool onOFF) // has to be called after initialize() for RFM69HW
 void sleep();
 unsigned char readTemperature(unsigned char calFactor=0); // get CMOS temperature (8bit)
 void rcCalibration();
-void sendFrame(unsigned short toAddress, const void* buffer, unsigned char size, bool requestACK=false, bool sendACK=false);
-void receiveBegin();*/
+void sendFrame(unsigned short toAddress, const void* buffer, unsigned char size, bool requestACK=false, bool sendACK=false);*/
+void receiveBegin()
+{
+    DATALEN = 0;
+    SENDERID = 0;
+    TARGETID = 0;
+    PAYLOADLEN = 0;
+    ACK_REQUESTED = 0;
+    ACK_RECEIVED = 0;
+    RSSI = 0;
+    if (readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PAYLOADREADY)
+        writeReg(REG_PACKETCONFIG2, (readReg(REG_PACKETCONFIG2) & 0xFB) | RF_PACKET2_RXRESTART); // avoid RX deadlocks
+    writeReg(REG_DIOMAPPING1, RF_DIOMAPPING1_DIO0_01); // set DIO0 to "PAYLOADREADY" in receive mode
+    setMode(RF69_MODE_RX);
+}
 void setMode(unsigned char mode)
 {
     if (mode == _mode)
@@ -160,7 +233,41 @@ void setHighPowerRegs(bool onOff)
     writeReg(REG_TESTPA1, onOff ? 0x5D : 0x55);
     writeReg(REG_TESTPA2, onOff ? 0x7C : 0x70);
 }
-//void interruptHandler();
+void interruptHandler()
+{
+    if (_mode == RF69_MODE_RX && (readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PAYLOADREADY))
+    {
+        setMode(RF69_MODE_STANDBY);
+        unsigned char data = REG_FIFO & 0x7F;
+        wiringPiSPIDataRW(0, &data, 1);
+        data = 0;
+        PAYLOADLEN = wiringPiSPIDataRW(0, &data, 1);
+        PAYLOADLEN = PAYLOADLEN > 66 ? 66 : PAYLOADLEN; // precaution
+        TARGETID = wiringPiSPIDataRW(0, &data, 1);
+        SENDERID = wiringPiSPIDataRW(0, &data, 1);
+        unsigned char CTLbyte = wiringPiSPIDataRW(0, &data, 1);
+        TARGETID |= ((unsigned short)(CTLbyte) & 0x0C) << 6; //10 bit address (most significant 2 bits stored in bits(2,3) of CTL byte
+        SENDERID |= ((unsigned short)(CTLbyte) & 0x03) << 8; //10 bit address (most sifnigicant 2 bits stored in bits(0,1) of CTL byte
+
+        if(!(_spyMode || TARGETID == _address || TARGETID == RF69_BROADCAST_ADDR) || PAYLOADLEN < 3) // address situation could receive packets that are malformed and don't fit this libraries extra fields
+        {
+            PAYLOADLEN = 0;
+            receiveBegin();
+            return;
+        }
+
+        DATALEN = PAYLOADLEN - 3;
+        ACK_RECEIVED = CTLbyte & RFM69_CTL_SENDACK; // extract ACK-received flag
+        ACK_REQUESTED = CTLbyte & RFM69_CTL_REQACK; // extract ACK-requested flag
+        //interruptHook(CTLbyte);     // TWS: hook to derived class interrupt function
+
+        for (unsigned char i = 0; i < DATALEN; i++) DATA[i] = wiringPiSPIDataRW(0, &data, 1);
+
+        DATA[DATALEN] = 0; // add null at end of string
+        setMode(RF69_MODE_RX);
+    }
+    RSSI = readRSSI();
+}
 unsigned char readReg(unsigned char addr)
 {
     char data[2]={0};

@@ -32,32 +32,32 @@
 #define RFM69_ACK_TIMEOUT   30  // 30ms roundtrip req for 61byte packets
 
 unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned char networkID, unsigned char intPin, unsigned char rstPin, unsigned char spiBus);
-/*void setAddress(unsigned short addr);
+void setAddress(unsigned short addr);
 void setNetwork(unsigned char networkID);
 bool canSend();
 void send(unsigned short toAddress, const void* buffer, unsigned char bufferSize, bool requestACK=false);
 bool sendWithRetry(unsigned short toAddress, const void* buffer, unsigned char bufferSize, unsigned char retries=2, unsigned char retryWaitTime=RFM69_ACK_TIMEOUT);
 bool receiveDone();
-bool ACKReceived(unsigned short fromNodeID);
+/*bool ACKReceived(unsigned short fromNodeID);
 bool ACKRequested();
 void sendACK(const void* buffer = "", unsigned char bufferSize=0);
 int getFrequency(); //-------//
 void setFrequency(unsigned int freqHz);*/
 void encrypt(const char* key);
-/*void setCS(unsigned char newSPISlaveSelect); //-------//
+//void setCS(unsigned char newSPISlaveSelect); //-------//
 short readRSSI(bool forceTrigger=false); // *current* signal strength indicator; e.g. < -90dBm says the frequency channel is free + ready to transmit
-void spyMode(bool onOff=true); //-------//
+/*void spyMode(bool onOff=true); //-------//
 void promiscuous(bool onOff=true); //deprecated, replaced with spyMode()*/
 void setHighPower(bool onOFF); // has to be called after initialize() for RFM69HW
 /*void setPowerLevel(unsigned char level); // reduce/increase transmit power level
 void sleep();
 unsigned char readTemperature(unsigned char calFactor=0); // get CMOS temperature (8bit)
 void rcCalibration();
-void sendFrame(unsigned short toAddress, const void* buffer, unsigned char size, bool requestACK=false, bool sendACK=false);
-void receiveBegin();*/
+void sendFrame(unsigned short toAddress, const void* buffer, unsigned char size, bool requestACK=false, bool sendACK=false);*/
+void receiveBegin();
 void setMode(unsigned char mode);
 void setHighPowerRegs(bool onOff);
-//void interruptHandler();
+void interruptHandler();
 unsigned char readReg(unsigned char addr);
 void writeReg(unsigned char addr, unsigned char val);
 //void readAllRegs();
