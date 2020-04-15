@@ -83,7 +83,7 @@ unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned cha
     unsigned int start = millis();
     unsigned char timeout = 50;
     
-    do { writeReg(REG_SYNCVALUE1, 0xAA); printf("%d",readReg(REG_SYNCVALUE1)); } while (readReg(REG_SYNCVALUE1) != 0xaa && millis()-start < timeout);
+    do { writeReg(REG_SYNCVALUE1, 0xAA); printf("\n%d",readReg(REG_SYNCVALUE1)); } while (readReg(REG_SYNCVALUE1) != 0xaa && millis()-start < timeout);
     start = millis();
     do writeReg(REG_SYNCVALUE1, 0x55); while (readReg(REG_SYNCVALUE1) != 0x55 && millis()-start < timeout);
     printf("\n%d,%d\n",start,millis()-start);
