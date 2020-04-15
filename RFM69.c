@@ -29,6 +29,10 @@ unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned cha
     PAYLOADLEN = 0;
     wiringPiSetupPhys();
     pinMode(rstPin, OUTPUT);
+    digitalWrite(rstPin, HIGH);
+    delay(100);
+    digitalWrite(rstPin, LOW);
+    delay(100);
     wiringPiSPISetup(spiBus, 1000000);
     printf("%d",_powerLevel);
     const unsigned char CONFIG[][2] =
