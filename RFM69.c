@@ -282,7 +282,7 @@ void sendFrame(unsigned short toAddress, const void* buffer, unsigned char buffe
     if (_address > 0xFF) CTLbyte |= (_address & 0x300) >> 8;   //assign last 2 bits of address if > 255
 
     // write to FIFO
-    unsigned char data[buffersize+5];
+    unsigned char data[bufferSize+5];
     data[0] = REG_FIFO | 0x80;
     //wiringPiSPIDataRW(0, &data, 1);
     data[1] = bufferSize + 3;
