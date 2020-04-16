@@ -146,8 +146,8 @@ bool receiveDone()
 {
     if (_haveData) 
     {
-  	    //_haveData = false;
-        //printf("Data received");
+  	    _haveData = false;
+        printf("Data received");
   	    interruptHandler(); 
     }
     if (_mode == RF69_MODE_RX && PAYLOADLEN > 0)
@@ -408,7 +408,7 @@ void interruptHandler()
         //DATA[DATALEN] = 0; // add null at end of string
         printf("\n");
         setMode(RF69_MODE_RX);
-        _haveData = false;
+        //_haveData = false;
     }
     //printf("Data not read?");
     RSSI = readRSSI(0);
