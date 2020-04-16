@@ -17,11 +17,11 @@ int main(void)
         if(strstr(string, "Animation"))
         {
             printf("Senden: \n");
-            //if(sendWithRetry(2,"animation1,15",13,3,10))
-                //printf("Ack Received\n");
-            //else
-                //printf("No Ack Received");
-            send(2,"animation1,15",14,1);
+            if(sendWithRetry(2,"animation1,15",13,3,10))
+                printf("Ack Received\n");
+            else
+                printf("No Ack Received");
+            //send(2,"animation1,15",14,1);
             printf("Node Adr: %d", readReg(0x39));
             printf("Net Adr: %d", readReg(0x30));
         }
