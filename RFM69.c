@@ -146,7 +146,7 @@ bool receiveDone()
 {
     if (_haveData) 
     {
-  	    //_haveData = false;
+  	    _haveData = false;
         printf("Data received");
   	    interruptHandler(); 
     }
@@ -359,6 +359,7 @@ void setHighPowerRegs(bool onOff)
 }
 void interruptHandler()
 {
+    printf("%d",readReg(REG_IRQFLAGS2));
     if (_mode == RF69_MODE_RX && (readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PAYLOADREADY))
     {
         setMode(RF69_MODE_STANDBY);
@@ -392,7 +393,7 @@ void interruptHandler()
 
         DATA[DATALEN] = 0; // add null at end of string
         setMode(RF69_MODE_RX);
-        _haveData = false;
+        //_haveData = false;
     }
     printf("Data not read?");
     RSSI = readRSSI(0);
