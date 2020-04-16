@@ -21,7 +21,9 @@ int main(void)
                 //printf("Ack Received\n");
             //else
                 //printf("No Ack Received");
-            send(2,"animation1,15",13,1);
+            send(2,"animation1,15",14,1);
+            printf("Node Adr: %d", readReg(0x39));
+            printf("Net Adr: %d", readReg(0x30));
         }
     }
     return 0;
