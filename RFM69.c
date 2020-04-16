@@ -388,6 +388,11 @@ void interruptHandler()
         {
             printf("%d,", data[i+1]);
         }
+        TARGETID = data[1];
+        SENDERID = data[2];
+        unsigned char CTLbyte = data[3];
+        TARGETID |= ((unsigned short)(CTLbyte) & 0x0C) << 6; //10 bit address (most significant 2 bits stored in bits(2,3) of CTL byte
+        SENDERID |= ((unsigned short)(CTLbyte) & 0x03) << 8; //10 bit address (most sifnigicant 2 bits stored in bits(0,1) of CTL byte
         printf("\n");
         //TARGETID = readReg(REG_FIFO & 0x7F);
         //TARGETID = wiringPiSPIDataRW(0, &data, 1);
@@ -398,24 +403,24 @@ void interruptHandler()
         //TARGETID |= ((unsigned short)(CTLbyte) & 0x0C) << 6; //10 bit address (most significant 2 bits stored in bits(2,3) of CTL byte
         //SENDERID |= ((unsigned short)(CTLbyte) & 0x03) << 8; //10 bit address (most sifnigicant 2 bits stored in bits(0,1) of CTL byte
     	//printf("TargetId: %d\nSenderId: %d\n", TARGETID, SENDERID);
-        /*if(!(_spyMode || TARGETID == _address || TARGETID == RF69_BROADCAST_ADDR) || PAYLOADLEN < 3) // address situation could receive packets that are malformed and don't fit this libraries extra fields
+        if(!(_spyMode || TARGETID == _address || TARGETID == RF69_BROADCAST_ADDR) || PAYLOADLEN < 3) // address situation could receive packets that are malformed and don't fit this libraries extra fields
         {
             PAYLOADLEN = 0;
             receiveBegin();
             printf("Abort Receive");
             _haveData = false;
             return;
-        }*/
+        }
 
-        //DATALEN = PAYLOADLEN - 3;
-        //ACK_RECEIVED = CTLbyte & RFM69_CTL_SENDACK; // extract ACK-received flag
-        //ACK_REQUESTED = CTLbyte & RFM69_CTL_REQACK; // extract ACK-requested flag
+        DATALEN = PAYLOADLEN - 3;
+        ACK_RECEIVED = CTLbyte & RFM69_CTL_SENDACK; // extract ACK-received flag
+        ACK_REQUESTED = CTLbyte & RFM69_CTL_REQACK; // extract ACK-requested flag
         //interruptHook(CTLbyte);     // TWS: hook to derived class interrupt function
 
-        //for (unsigned char i = 0; i < DATALEN; i++) { DATA[i] = wiringPiSPIDataRW(0, &data, 1); printf("%d,", DATA[i]); }
+        for (unsigned char i = 0; i < DATALEN; i++) DATA[i] = data[i+3];
         //for (unsigned char i = 0; i < DATALEN; i++) { DATA[i] = readReg(REG_FIFO & 0x7F); printf("%d,", DATA[i]); }
 
-        //DATA[DATALEN] = 0; // add null at end of string
+        DATA[DATALEN] = 0; // add null at end of string
         printf("\n");
         setMode(RF69_MODE_RX);
         //_haveData = false;
