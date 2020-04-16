@@ -123,7 +123,7 @@ void send(unsigned short toAddress, const void* buffer, unsigned char bufferSize
     writeReg(REG_PACKETCONFIG2, (readReg(REG_PACKETCONFIG2) & 0xFB) | RF_PACKET2_RXRESTART); // avoid RX deadlocks
     unsigned int now = millis();
     while (!canSend() && millis() - now < RF69_CSMA_LIMIT_MS) receiveDone();
-    print("Sending");
+    printf("Sending");
     sendFrame(toAddress, buffer, bufferSize, requestACK, false);
 }
 bool sendWithRetry(unsigned short toAddress, const void* buffer, unsigned char bufferSize, unsigned char retries, unsigned char retryWaitTime)
@@ -266,6 +266,7 @@ void sendFrame(unsigned short toAddress, const void* buffer, unsigned char buffe
 {
     setMode(RF69_MODE_STANDBY); // turn off receiver to prevent reception while filling fifo
     while ((readReg(REG_IRQFLAGS1) & RF_IRQFLAGS1_MODEREADY) == 0x00); // wait for ModeReady
+    printf("Ready\n");
     if (bufferSize > RF69_MAX_DATA_LEN) bufferSize = RF69_MAX_DATA_LEN;
 
     // control byte
@@ -290,7 +291,7 @@ void sendFrame(unsigned short toAddress, const void* buffer, unsigned char buffe
     wiringPiSPIDataRW(0, &data, 1);
     data = CTLbyte;
     wiringPiSPIDataRW(0, &data, 1);
-
+    printf("Transferring Data\n");
     for (unsigned char i = 0; i < bufferSize; i++)
     {
         data = ((unsigned char*) buffer)[i];
@@ -299,9 +300,11 @@ void sendFrame(unsigned short toAddress, const void* buffer, unsigned char buffe
 
     // no need to wait for transmit mode to be ready since its handled by the radio
     setMode(RF69_MODE_TX);
+    printf("Sending Data\n");
     //uint32_t txStart = millis();
     //while (digitalRead(_interruptPin) == 0 && millis() - txStart < RF69_TX_LIMIT_MS); // wait for DIO0 to turn HIGH signalling transmission finish
     while ((readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PACKETSENT) == 0x00); // wait for PacketSent
+    printf("Data sent\n");
     setMode(RF69_MODE_STANDBY);
 }
 void receiveBegin()
