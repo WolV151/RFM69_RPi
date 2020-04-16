@@ -361,6 +361,7 @@ void setMode(unsigned char mode)
         default:
             return;
     }
+    _mode = mode;
 }
 void setHighPowerRegs(bool onOff)
 {
