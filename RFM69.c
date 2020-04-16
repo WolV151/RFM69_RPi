@@ -397,10 +397,10 @@ void interruptHandler()
 }
 unsigned char readReg(unsigned char addr)
 {
-    char data[2]={0};
+    unsigned char data[2]={0};
     data[0]=addr&0x7F;
     printf("%d\n",wiringPiSPIDataRW(0, data, 2));
-    printf("%s\n\n", data);
+    printf("%sd\n%d\n", data[0],data[1]);
     return data[0];
 }
 void writeReg(unsigned char addr, unsigned char val)
