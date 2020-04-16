@@ -168,7 +168,7 @@ bool ACKReceived(unsigned short fromNodeID)
 {
     if (receiveDone())
     {
-        printf("9");
+        printf("8");
         return (SENDERID == fromNodeID || fromNodeID == RF69_BROADCAST_ADDR) && ACK_RECEIVED;
     }
     return false;
