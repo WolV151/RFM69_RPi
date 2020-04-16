@@ -147,7 +147,7 @@ bool receiveDone()
     if (_haveData) 
     {
   	    _haveData = false;
-        printf("Data received");
+        printf("Data received\n");
   	    interruptHandler(); 
     }
     if (_mode == RF69_MODE_RX && PAYLOADLEN > 0)
@@ -159,6 +159,7 @@ bool receiveDone()
     {
         return false;
     }
+    printf("No Data received\n");
     receiveBegin();
     return false;
 }
