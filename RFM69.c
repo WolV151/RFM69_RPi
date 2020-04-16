@@ -409,6 +409,7 @@ void writeReg(unsigned char addr, unsigned char val)
 //bool shutdown();
 void isr0()
 {
-    _haveData = true;
+    if(_mode == RF69_MODE_RX)
+        _haveData = true;
     printf("ISR\n");
 }
