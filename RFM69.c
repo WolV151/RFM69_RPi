@@ -371,9 +371,12 @@ void interruptHandler()
         //data = 0;
         //PAYLOADLEN = wiringPiSPIDataRW(0, &data, 1);
         PAYLOADLEN = PAYLOADLEN > 66 ? 66 : PAYLOADLEN; // precaution
-        TARGETID = wiringPiSPIDataRW(0, &data, 1);
-        SENDERID = wiringPiSPIDataRW(0, &data, 1);
-        unsigned char CTLbyte = wiringPiSPIDataRW(0, &data, 1);
+        TARGETID = readReg(REG_FIFO & 0x7F);
+        //TARGETID = wiringPiSPIDataRW(0, &data, 1);
+        SENDERID = readReg(REG_FIFO & 0x7F);
+        //SENDERID = wiringPiSPIDataRW(0, &data, 1);
+        //unsigned char CTLbyte = wiringPiSPIDataRW(0, &data, 1);
+        unsigned char CTLbyte = readReg(REG_FIFO & 0x7F);
         TARGETID |= ((unsigned short)(CTLbyte) & 0x0C) << 6; //10 bit address (most significant 2 bits stored in bits(2,3) of CTL byte
         SENDERID |= ((unsigned short)(CTLbyte) & 0x03) << 8; //10 bit address (most sifnigicant 2 bits stored in bits(0,1) of CTL byte
 
@@ -389,7 +392,8 @@ void interruptHandler()
         ACK_REQUESTED = CTLbyte & RFM69_CTL_REQACK; // extract ACK-requested flag
         //interruptHook(CTLbyte);     // TWS: hook to derived class interrupt function
 
-        for (unsigned char i = 0; i < DATALEN; i++) { DATA[i] = wiringPiSPIDataRW(0, &data, 1); printf("%d,", DATA[i]); }
+        //for (unsigned char i = 0; i < DATALEN; i++) { DATA[i] = wiringPiSPIDataRW(0, &data, 1); printf("%d,", DATA[i]); }
+        for (unsigned char i = 0; i < DATALEN; i++) { DATA[i] = readReg(REG_FIFO & 0x7F); printf("%d,", DATA[i]); }
 
         DATA[DATALEN] = 0; // add null at end of string
         printf("\n");
