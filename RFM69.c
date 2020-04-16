@@ -404,4 +404,5 @@ void writeReg(unsigned char addr, unsigned char val)
 void isr0()
 {
     _haveData = true;
+    printf("ISR\n");
 }
