@@ -147,6 +147,7 @@ bool receiveDone()
     if (_haveData) 
     {
   	    _haveData = false;
+        printf("Data received");
   	    interruptHandler(); 
     }
     if (_mode == RF69_MODE_RX && PAYLOADLEN > 0)
@@ -361,10 +362,13 @@ void interruptHandler()
     if (_mode == RF69_MODE_RX && (readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PAYLOADREADY))
     {
         setMode(RF69_MODE_STANDBY);
-        unsigned char data = REG_FIFO & 0x7F;
-        wiringPiSPIDataRW(0, &data, 1);
-        data = 0;
-        PAYLOADLEN = wiringPiSPIDataRW(0, &data, 1);
+        unsigned char data = 0;
+        //data[0] = REG_FIFO & 0x7F;
+        PAYLOADLEN =readReg(REG_FIFO & 0x7F);
+        printf("Payloadlen: %d", PAYLOADLEN);
+        //wiringPiSPIDataRW(0, data, 2);
+        //data = 0;
+        //PAYLOADLEN = wiringPiSPIDataRW(0, &data, 1);
         PAYLOADLEN = PAYLOADLEN > 66 ? 66 : PAYLOADLEN; // precaution
         TARGETID = wiringPiSPIDataRW(0, &data, 1);
         SENDERID = wiringPiSPIDataRW(0, &data, 1);
