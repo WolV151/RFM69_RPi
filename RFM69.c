@@ -301,9 +301,9 @@ void sendFrame(unsigned short toAddress, const void* buffer, unsigned char buffe
     // no need to wait for transmit mode to be ready since its handled by the radio
     setMode(RF69_MODE_TX);
     printf("Sending Data\n");
-    //uint32_t txStart = millis();
-    //while (digitalRead(_interruptPin) == 0 && millis() - txStart < RF69_TX_LIMIT_MS); // wait for DIO0 to turn HIGH signalling transmission finish
-    while ((readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PACKETSENT) == 0x00) delay(1); // wait for PacketSent  -----------------
+    unsigned int txStart = millis();
+    while (digitalRead(_interruptPin) == 0 && millis() - txStart < RF69_TX_LIMIT_MS); // wait for DIO0 to turn HIGH signalling transmission finish
+    //while ((readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PACKETSENT) == 0x00) delay(1); // wait for PacketSent  -----------------
     printf("Data sent\n");
     setMode(RF69_MODE_STANDBY);
 }
