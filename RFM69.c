@@ -360,7 +360,7 @@ void setHighPowerRegs(bool onOff)
 void interruptHandler()
 {
     printf("%d",readReg(REG_IRQFLAGS2));
-    if (_mode == RF69_MODE_RX) // && (readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PAYLOADREADY))
+    if (_mode == RF69_MODE_RX && (readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PAYLOADREADY))
     {
         setMode(RF69_MODE_STANDBY);
         //data[0] = REG_FIFO & 0x7F;
