@@ -33,8 +33,7 @@ unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned cha
     delay(100);
     digitalWrite(rstPin, LOW);
     delay(100);
-    printf("%d",wiringPiSPISetup(spiBus, 1000000));
-    printf("%d",_powerLevel);
+    wiringPiSPISetup(spiBus, 1000000);
     const unsigned char CONFIG[][2] =
     {
         /* 0x01 */ { REG_OPMODE, RF_OPMODE_SEQUENCER_ON | RF_OPMODE_LISTEN_OFF | RF_OPMODE_STANDBY },
@@ -86,7 +85,6 @@ unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned cha
     do writeReg(REG_SYNCVALUE1, 0xAA); while (readReg(REG_SYNCVALUE1) != 0xaa && millis()-start < timeout);
     start = millis();
     do writeReg(REG_SYNCVALUE1, 0x55); while (readReg(REG_SYNCVALUE1) != 0x55 && millis()-start < timeout);
-    printf("\n%d,%d\n",start,millis()-start);
     for (unsigned char i = 0; CONFIG[i][0] != 255; i++)
         writeReg(CONFIG[i][0], CONFIG[i][1]);
     
@@ -99,7 +97,6 @@ unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned cha
     if (millis()-start >= timeout)
         return false;
     wiringPiISR(intPin, INT_EDGE_RISING, isr0);
-    printf("%d",_powerLevel);
     _address = ID;
     return true;
 }
@@ -123,30 +120,22 @@ bool canSend()
 }
 void send(unsigned short toAddress, const void* buffer, unsigned char bufferSize, bool requestACK)
 {
-    printf("%d",toAddress);
     writeReg(REG_PACKETCONFIG2, (readReg(REG_PACKETCONFIG2) & 0xFB) | RF_PACKET2_RXRESTART); // avoid RX deadlocks
-    printf("%d",toAddress);
     unsigned int now = millis();
-    printf("%d",toAddress);
     while (!canSend() && millis() - now < RF69_CSMA_LIMIT_MS) receiveDone();
-    printf("%d",toAddress);
     sendFrame(toAddress, buffer, bufferSize, requestACK, false);
 }
 bool sendWithRetry(unsigned short toAddress, const void* buffer, unsigned char bufferSize, unsigned char retries, unsigned char retryWaitTime)
 {
     unsigned int sentTime;
-    printf("%d",toAddress);
     for (unsigned char i = 0; i <= retries; i++)
     {
-        printf("%d",i);
         send(toAddress, buffer, bufferSize, true);
-        printf("%d",i);
         sentTime = millis();
         while (millis() - sentTime < retryWaitTime)
         {
             if (ACKReceived(toAddress)) return true;
         }
-        printf("%d\n",i);
     }
     return false;
 }
@@ -399,8 +388,8 @@ unsigned char readReg(unsigned char addr)
 {
     unsigned char data[2]={0};
     data[0]=addr&0x7F;
-    printf("%d\n",wiringPiSPIDataRW(0, data, 2));
-    printf("%d\n%d\n\n", data[0],data[1]);
+    wiringPiSPIDataRW(0, data, 2);
+    //printf("%d\n%d\n\n", data[0],data[1]);
     return data[1];
 }
 void writeReg(unsigned char addr, unsigned char val)
