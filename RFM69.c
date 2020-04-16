@@ -310,8 +310,9 @@ void sendFrame(unsigned short toAddress, const void* buffer, unsigned char buffe
     //while (digitalRead(_intPin) == 0 && millis() - txStart < RF69_TX_LIMIT_MS); // wait for DIO0 to turn HIGH signalling transmission finish
     while ((readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PACKETSENT) == 0x00) delay(1); // wait for PacketSent  -----------------
     printf("Data sent\n");
-    setMode(RF69_MODE_STANDBY);
     _haveData = false;
+    setMode(RF69_MODE_STANDBY);
+    receiveBegin();
 }
 void receiveBegin()
 {
