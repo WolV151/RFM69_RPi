@@ -18,6 +18,7 @@ unsigned char ACK_REQUESTED;
 unsigned char ACK_RECEIVED;
 short RSSI;
 unsigned char DATA[RF69_MAX_DATA_LEN+1];
+unsigned char _intPin;
 
 unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned char networkID, unsigned char intPin, unsigned char rstPin, unsigned char spiBus)
 {
@@ -27,6 +28,7 @@ unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned cha
     _address;
     _haveData = 0;
     PAYLOADLEN = 0;
+    _intPin=intPin;
     wiringPiSetupPhys();
     pinMode(rstPin, OUTPUT);
     digitalWrite(rstPin, HIGH);
@@ -302,7 +304,7 @@ void sendFrame(unsigned short toAddress, const void* buffer, unsigned char buffe
     setMode(RF69_MODE_TX);
     printf("Sending Data\n");
     unsigned int txStart = millis();
-    while (digitalRead(_interruptPin) == 0 && millis() - txStart < RF69_TX_LIMIT_MS); // wait for DIO0 to turn HIGH signalling transmission finish
+    while (digitalRead(_intPin) == 0 && millis() - txStart < RF69_TX_LIMIT_MS); // wait for DIO0 to turn HIGH signalling transmission finish
     //while ((readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PACKETSENT) == 0x00) delay(1); // wait for PacketSent  -----------------
     printf("Data sent\n");
     setMode(RF69_MODE_STANDBY);
