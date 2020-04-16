@@ -310,6 +310,7 @@ void sendFrame(unsigned short toAddress, const void* buffer, unsigned char buffe
     while ((readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PACKETSENT) == 0x00) delay(1); // wait for PacketSent  -----------------
     printf("Data sent\n");
     setMode(RF69_MODE_STANDBY);
+    _haveData = false;
 }
 void receiveBegin()
 {
@@ -359,7 +360,7 @@ void setHighPowerRegs(bool onOff)
 }
 void interruptHandler()
 {
-    printf("%d",readReg(REG_IRQFLAGS2));
+    //printf("%d",readReg(REG_IRQFLAGS2));
     if (_mode == RF69_MODE_RX && (readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PAYLOADREADY))
     {
         setMode(RF69_MODE_STANDBY);
