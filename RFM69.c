@@ -145,7 +145,8 @@ bool sendWithRetry(unsigned short toAddress, const void* buffer, unsigned char b
 }
 bool receiveDone()
 {
-    printf("Mode: %d\n", _mode);
+    if(_mode!=3)
+        printf("Mode: %d\n", _mode);
     if (_haveData) 
     {
   	    _haveData = false;
