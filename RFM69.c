@@ -379,12 +379,13 @@ void interruptHandler()
         unsigned char CTLbyte = readReg(REG_FIFO & 0x7F);
         TARGETID |= ((unsigned short)(CTLbyte) & 0x0C) << 6; //10 bit address (most significant 2 bits stored in bits(2,3) of CTL byte
         SENDERID |= ((unsigned short)(CTLbyte) & 0x03) << 8; //10 bit address (most sifnigicant 2 bits stored in bits(0,1) of CTL byte
-
+    	printf("TargetId: %d\nSenderId: %d", TARGETID, SENDERID);
         if(!(_spyMode || TARGETID == _address || TARGETID == RF69_BROADCAST_ADDR) || PAYLOADLEN < 3) // address situation could receive packets that are malformed and don't fit this libraries extra fields
         {
             PAYLOADLEN = 0;
             receiveBegin();
             printf("Abort Receive");
+            _haveData = false;
             return;
         }
 
