@@ -311,8 +311,9 @@ void sendFrame(unsigned short toAddress, const void* buffer, unsigned char buffe
     while ((readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PACKETSENT) == 0x00) delay(1); // wait for PacketSent  -----------------
     printf("Data sent\n");
     _haveData = false;
-    setMode(RF69_MODE_STANDBY);
-    receiveBegin();
+    //setMode(RF69_MODE_STANDBY);
+    setMode(RF69_MODE_RX);
+    //receiveBegin();
 }
 void receiveBegin()
 {
