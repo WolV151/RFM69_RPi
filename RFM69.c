@@ -303,7 +303,7 @@ void sendFrame(unsigned short toAddress, const void* buffer, unsigned char buffe
     printf("Sending Data\n");
     //uint32_t txStart = millis();
     //while (digitalRead(_interruptPin) == 0 && millis() - txStart < RF69_TX_LIMIT_MS); // wait for DIO0 to turn HIGH signalling transmission finish
-    while ((readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PACKETSENT) == 0x00); // wait for PacketSent
+    //while ((readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PACKETSENT) == 0x00); // wait for PacketSent
     printf("Data sent\n");
     setMode(RF69_MODE_STANDBY);
 }
