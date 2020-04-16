@@ -384,6 +384,7 @@ void interruptHandler()
         {
             PAYLOADLEN = 0;
             receiveBegin();
+            printf("Abort Receive");
             return;
         }
 
