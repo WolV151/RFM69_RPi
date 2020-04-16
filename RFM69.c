@@ -370,7 +370,7 @@ void interruptHandler()
         //data = 0;
         //PAYLOADLEN = wiringPiSPIDataRW(0, &data, 1);
         PAYLOADLEN = PAYLOADLEN > 66 ? 66 : PAYLOADLEN; // precaution
-        unsigned char data[PAYLOADLEN+1] = {0};
+        unsigned char data[PAYLOADLEN+1];
         data[0]=REG_FIFO & 0x7F;
         wiringPiSPIDataRW(0, data, PAYLOADLEN+1);
         for (unsigned char i = 0; i < PAYLOADLEN; i++)
