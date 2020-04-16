@@ -137,6 +137,7 @@ bool sendWithRetry(unsigned short toAddress, const void* buffer, unsigned char b
         sentTime = millis();
         while (millis() - sentTime < retryWaitTime*10)
         {
+            printf("9");
             if (ACKReceived(toAddress)) return true;
         }
     }
@@ -166,7 +167,10 @@ bool receiveDone()
 bool ACKReceived(unsigned short fromNodeID)
 {
     if (receiveDone())
+    {
+        printf("9");
         return (SENDERID == fromNodeID || fromNodeID == RF69_BROADCAST_ADDR) && ACK_RECEIVED;
+    }
     return false;
 }
 bool ACKRequested()
