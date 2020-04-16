@@ -389,13 +389,14 @@ void interruptHandler()
         ACK_REQUESTED = CTLbyte & RFM69_CTL_REQACK; // extract ACK-requested flag
         //interruptHook(CTLbyte);     // TWS: hook to derived class interrupt function
 
-        for (unsigned char i = 0; i < DATALEN; i++) DATA[i] = wiringPiSPIDataRW(0, &data, 1);
+        for (unsigned char i = 0; i < DATALEN; i++) { DATA[i] = wiringPiSPIDataRW(0, &data, 1); printf("%d,", DATA[i]); }
 
         DATA[DATALEN] = 0; // add null at end of string
+        printf("\n");
         setMode(RF69_MODE_RX);
         _haveData = false;
     }
-    printf("Data not read?");
+    //printf("Data not read?");
     RSSI = readRSSI(0);
 }
 unsigned char readReg(unsigned char addr)
