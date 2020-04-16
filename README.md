@@ -3,11 +3,11 @@ RFM69 library in C for Raspberry Pi
 
 ## This library is currently untested
 
-This is a port of the RFM69 library for arduino from https://github.com/LowPowerLab/RFM69 to C for raspberry pi.
-
 ## Description
 
-This is a port of the RFM69 library for arduino from https://github.com/LowPowerLab/RFM69 to python for raspberry pi.
+This is a port of the RFM69 library for arduino from https://github.com/LowPowerLab/RFM69 to C for raspberry pi.
+
+Some ideas are included from the python port from https://github.com/etrombly/RFM69.
 
 ## Hardware setup
 
