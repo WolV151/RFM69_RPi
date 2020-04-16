@@ -282,24 +282,25 @@ void sendFrame(unsigned short toAddress, const void* buffer, unsigned char buffe
     if (_address > 0xFF) CTLbyte |= (_address & 0x300) >> 8;   //assign last 2 bits of address if > 255
 
     // write to FIFO
-    unsigned char data;
-    data = REG_FIFO | 0x80;
-    wiringPiSPIDataRW(0, &data, 1);
-    data = bufferSize + 3;
-    wiringPiSPIDataRW(0, &data, 1);
-    data = (unsigned char)toAddress;
-    wiringPiSPIDataRW(0, &data, 1);
-    data = (unsigned char)_address;
-    wiringPiSPIDataRW(0, &data, 1);
-    data = CTLbyte;
-    wiringPiSPIDataRW(0, &data, 1);
+    unsigned char data[buffersize+5];
+    data[0] = REG_FIFO | 0x80;
+    //wiringPiSPIDataRW(0, &data, 1);
+    data[1] = bufferSize + 3;
+    //wiringPiSPIDataRW(0, &data, 1);
+    data[2] = (unsigned char)toAddress;
+    //wiringPiSPIDataRW(0, &data, 1);
+    data[3] = (unsigned char)_address;
+    //wiringPiSPIDataRW(0, &data, 1);
+    data[4] = CTLbyte;
+    //wiringPiSPIDataRW(0, &data, 1);
     printf("Transferring Data\n");
     for (unsigned char i = 0; i < bufferSize; i++)
     {
-        data = ((unsigned char*) buffer)[i];
-        wiringPiSPIDataRW(0, &data, 1);
+        data[5+i] = ((unsigned char*) buffer)[i];
+        //wiringPiSPIDataRW(0, &data, 1);
     }
-
+    wiringPiSPIDataRW(0, data, bufferSize+5);
+    readReg(REG_IRQFLAGS2);
     // no need to wait for transmit mode to be ready since its handled by the radio
     setMode(RF69_MODE_TX);
     printf("Sending Data\n");
