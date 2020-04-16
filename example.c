@@ -17,7 +17,7 @@ int main(void)
         if(strstr(string, "Animation"))
         {
             printf("Senden: \n");
-            if(sendWithRetry(2,"animation1,15",13,3,10))
+            if(sendWithRetry(2,"animation1,15",13,3,100))
                 printf("Ack Received\n");
             else
                 printf("No Ack Received");
