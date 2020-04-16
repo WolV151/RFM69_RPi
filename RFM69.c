@@ -312,7 +312,7 @@ void sendFrame(unsigned short toAddress, const void* buffer, unsigned char buffe
     printf("Data sent\n");
     _haveData = false;
     //setMode(RF69_MODE_STANDBY);
-    setMode(RF69_MODE_RX);
+    //setMode(RF69_MODE_RX);
     //receiveBegin();
 }
 void receiveBegin()
