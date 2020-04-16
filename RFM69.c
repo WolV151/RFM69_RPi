@@ -365,7 +365,7 @@ void interruptHandler()
         setMode(RF69_MODE_STANDBY);
         //data[0] = REG_FIFO & 0x7F;
         PAYLOADLEN =readReg(REG_FIFO & 0x7F);
-        printf("Payloadlen: %d", PAYLOADLEN);
+        printf("Payloadlen: %d\n", PAYLOADLEN);
         //wiringPiSPIDataRW(0, data, 2);
         //data = 0;
         //PAYLOADLEN = wiringPiSPIDataRW(0, &data, 1);
@@ -432,7 +432,7 @@ void writeReg(unsigned char addr, unsigned char val)
 //bool shutdown();
 void isr0()
 {
-    //if(_mode == RF69_MODE_RX)
-    _haveData = true;
+    if(_mode == RF69_MODE_RX)
+        _haveData = true;
     printf("ISR\n");
 }
