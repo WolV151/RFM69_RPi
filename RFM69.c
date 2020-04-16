@@ -125,7 +125,7 @@ void send(unsigned short toAddress, const void* buffer, unsigned char bufferSize
     writeReg(REG_PACKETCONFIG2, (readReg(REG_PACKETCONFIG2) & 0xFB) | RF_PACKET2_RXRESTART); // avoid RX deadlocks
     unsigned int now = millis();
     while (!canSend() && millis() - now < RF69_CSMA_LIMIT_MS) receiveDone();
-    printf("Sending\n");
+
     sendFrame(toAddress, buffer, bufferSize, requestACK, false);
 }
 bool sendWithRetry(unsigned short toAddress, const void* buffer, unsigned char bufferSize, unsigned char retries, unsigned char retryWaitTime)
@@ -135,22 +135,16 @@ bool sendWithRetry(unsigned short toAddress, const void* buffer, unsigned char b
     {
         send(toAddress, buffer, bufferSize, true);
         sentTime = millis();
-        while (millis() - sentTime < retryWaitTime*10)
-        {
-            //printf("9");
+        while (millis() - sentTime < retryWaitTime)
             if (ACKReceived(toAddress)) return true;
-        }
     }
     return false;
 }
 bool receiveDone()
 {
-    if(_mode!=3)
-        printf("Mode: %d\n", _mode);
     if (_haveData) 
     {
   	    _haveData = false;
-        printf("Data received\n");
   	    interruptHandler(); 
     }
     if (_mode == RF69_MODE_RX && PAYLOADLEN > 0)
@@ -162,7 +156,6 @@ bool receiveDone()
     {
         return false;
     }
-    printf("No Data received\n");
     receiveBegin();
     return false;
 }
@@ -172,7 +165,6 @@ bool ACKReceived(unsigned short fromNodeID)
     {
         return (SENDERID == fromNodeID || fromNodeID == RF69_BROADCAST_ADDR) && ACK_RECEIVED;
     }
-    //printf("8");
     return false;
 }
 bool ACKRequested()
@@ -191,7 +183,7 @@ void sendACK(const void* buffer, unsigned char bufferSize)
     sendFrame(sender, buffer, bufferSize, false, true);
     RSSI = _RSSI; // restore payload RSSI
 }
-int getFrequency() //-------//
+int getFrequency() 
 {
     return RF69_FSTEP * (((unsigned int) readReg(REG_FRFMSB) << 16) + ((unsigned short) readReg(REG_FRFMID) << 8) + readReg(REG_FRFLSB));
 }
@@ -237,7 +229,7 @@ short readRSSI(bool forceTrigger) // *current* signal strength indicator; e.g. <
     rssi >>= 1;
     return rssi;
 }
-void spyMode(bool onOff) //-------//
+void spyMode(bool onOff) 
 {
     _spyMode = onOff;
 }
@@ -276,7 +268,6 @@ void sendFrame(unsigned short toAddress, const void* buffer, unsigned char buffe
 {
     setMode(RF69_MODE_STANDBY); // turn off receiver to prevent reception while filling fifo
     while ((readReg(REG_IRQFLAGS1) & RF_IRQFLAGS1_MODEREADY) == 0x00); // wait for ModeReady
-    printf("Ready\n");
     if (bufferSize > RF69_MAX_DATA_LEN) bufferSize = RF69_MAX_DATA_LEN;
 
     // control byte
@@ -292,34 +283,20 @@ void sendFrame(unsigned short toAddress, const void* buffer, unsigned char buffe
     // write to FIFO
     unsigned char data[bufferSize+5];
     data[0] = REG_FIFO | 0x80;
-    //wiringPiSPIDataRW(0, &data, 1);
     data[1] = bufferSize + 3;
-    //wiringPiSPIDataRW(0, &data, 1);
     data[2] = (unsigned char)toAddress;
-    //wiringPiSPIDataRW(0, &data, 1);
     data[3] = (unsigned char)_address;
-    //wiringPiSPIDataRW(0, &data, 1);
     data[4] = CTLbyte;
-    //wiringPiSPIDataRW(0, &data, 1);
-    printf("Transferring Data\n");
     for (unsigned char i = 0; i < bufferSize; i++)
     {
         data[5+i] = ((unsigned char*) buffer)[i];
-        //wiringPiSPIDataRW(0, &data, 1);
     }
     wiringPiSPIDataRW(0, data, bufferSize+5);
     readReg(REG_IRQFLAGS2);
     // no need to wait for transmit mode to be ready since its handled by the radio
     setMode(RF69_MODE_TX);
-    printf("Sending Data\n");
-    //unsigned int txStart = millis();
-    //while (digitalRead(_intPin) == 0 && millis() - txStart < RF69_TX_LIMIT_MS); // wait for DIO0 to turn HIGH signalling transmission finish
-    while ((readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PACKETSENT) == 0x00) delay(1); // wait for PacketSent  -----------------
-    printf("Data sent\n");
+    while ((readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PACKETSENT) == 0x00) delay(1); // wait for PacketSent
     _haveData = false;
-    //setMode(RF69_MODE_STANDBY);
-    //setMode(RF69_MODE_RX);
-    //receiveBegin();
 }
 void receiveBegin()
 {
@@ -370,44 +347,23 @@ void setHighPowerRegs(bool onOff)
 }
 void interruptHandler()
 {
-    //printf("%d",readReg(REG_IRQFLAGS2));
     if (_mode == RF69_MODE_RX && (readReg(REG_IRQFLAGS2) & RF_IRQFLAGS2_PAYLOADREADY))
     {
         setMode(RF69_MODE_STANDBY);
-        //data[0] = REG_FIFO & 0x7F;
         PAYLOADLEN =readReg(REG_FIFO & 0x7F);
-        printf("Payloadlen: %d\n", PAYLOADLEN);
-        //wiringPiSPIDataRW(0, data, 2);
-        //data = 0;
-        //PAYLOADLEN = wiringPiSPIDataRW(0, &data, 1);
         PAYLOADLEN = PAYLOADLEN > 66 ? 66 : PAYLOADLEN; // precaution
         unsigned char data[PAYLOADLEN+1];
         data[0]=REG_FIFO & 0x7F;
         wiringPiSPIDataRW(0, data, PAYLOADLEN+1);
-        for (unsigned char i = 0; i < PAYLOADLEN; i++)
-        {
-            printf("%d,", data[i+1]);
-        }
         TARGETID = data[1];
         SENDERID = data[2];
         unsigned char CTLbyte = data[3];
         TARGETID |= ((unsigned short)(CTLbyte) & 0x0C) << 6; //10 bit address (most significant 2 bits stored in bits(2,3) of CTL byte
         SENDERID |= ((unsigned short)(CTLbyte) & 0x03) << 8; //10 bit address (most sifnigicant 2 bits stored in bits(0,1) of CTL byte
-        printf("\n");
-        //TARGETID = readReg(REG_FIFO & 0x7F);
-        //TARGETID = wiringPiSPIDataRW(0, &data, 1);
-        //SENDERID = readReg(REG_FIFO & 0x7F);
-        //SENDERID = wiringPiSPIDataRW(0, &data, 1);
-        //unsigned char CTLbyte = wiringPiSPIDataRW(0, &data, 1);
-        //unsigned char CTLbyte = readReg(REG_FIFO & 0x7F);
-        //TARGETID |= ((unsigned short)(CTLbyte) & 0x0C) << 6; //10 bit address (most significant 2 bits stored in bits(2,3) of CTL byte
-        //SENDERID |= ((unsigned short)(CTLbyte) & 0x03) << 8; //10 bit address (most sifnigicant 2 bits stored in bits(0,1) of CTL byte
-    	//printf("TargetId: %d\nSenderId: %d\n", TARGETID, SENDERID);
         if(!(_spyMode || TARGETID == _address || TARGETID == RF69_BROADCAST_ADDR) || PAYLOADLEN < 3) // address situation could receive packets that are malformed and don't fit this libraries extra fields
         {
             PAYLOADLEN = 0;
             receiveBegin();
-            printf("Abort Receive");
             _haveData = false;
             return;
         }
@@ -415,17 +371,12 @@ void interruptHandler()
         DATALEN = PAYLOADLEN - 3;
         ACK_RECEIVED = CTLbyte & RFM69_CTL_SENDACK; // extract ACK-received flag
         ACK_REQUESTED = CTLbyte & RFM69_CTL_REQACK; // extract ACK-requested flag
-        //interruptHook(CTLbyte);     // TWS: hook to derived class interrupt function
 
         for (unsigned char i = 0; i < DATALEN; i++) DATA[i] = data[i+3];
-        //for (unsigned char i = 0; i < DATALEN; i++) { DATA[i] = readReg(REG_FIFO & 0x7F); printf("%d,", DATA[i]); }
 
         DATA[DATALEN] = 0; // add null at end of string
-        printf("\n");
         setMode(RF69_MODE_RX);
-        //_haveData = false;
     }
-    //printf("Data not read?");
     RSSI = readRSSI(0);
 }
 unsigned char readReg(unsigned char addr)
@@ -433,8 +384,6 @@ unsigned char readReg(unsigned char addr)
     unsigned char data[2]={0};
     data[0]=addr&0x7F;
     wiringPiSPIDataRW(0, data, 2);
-    //if(data[1]!=0)
-        //printf("\n%d\n", data[1]);
     return data[1];
 }
 void writeReg(unsigned char addr, unsigned char val)
@@ -445,10 +394,8 @@ void writeReg(unsigned char addr, unsigned char val)
     wiringPiSPIDataRW(0, data, 2);
 }
 //void readAllRegs();
-//bool shutdown();
 void isr0()
 {
     if(_mode == RF69_MODE_RX)
         _haveData = true;
-    printf("ISR\n");
 }
