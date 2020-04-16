@@ -125,7 +125,7 @@ void send(unsigned short toAddress, const void* buffer, unsigned char bufferSize
     writeReg(REG_PACKETCONFIG2, (readReg(REG_PACKETCONFIG2) & 0xFB) | RF_PACKET2_RXRESTART); // avoid RX deadlocks
     unsigned int now = millis();
     while (!canSend() && millis() - now < RF69_CSMA_LIMIT_MS) receiveDone();
-    printf("Sending");
+    printf("Sending\n");
     sendFrame(toAddress, buffer, bufferSize, requestACK, false);
 }
 bool sendWithRetry(unsigned short toAddress, const void* buffer, unsigned char bufferSize, unsigned char retries, unsigned char retryWaitTime)
@@ -135,7 +135,7 @@ bool sendWithRetry(unsigned short toAddress, const void* buffer, unsigned char b
     {
         send(toAddress, buffer, bufferSize, true);
         sentTime = millis();
-        while (millis() - sentTime < retryWaitTime)
+        while (millis() - sentTime < retryWaitTime*10)
         {
             if (ACKReceived(toAddress)) return true;
         }
@@ -146,7 +146,7 @@ bool receiveDone()
 {
     if (_haveData) 
     {
-  	    _haveData = false;
+  	    //_haveData = false;
         printf("Data received");
   	    interruptHandler(); 
     }
@@ -392,7 +392,9 @@ void interruptHandler()
 
         DATA[DATALEN] = 0; // add null at end of string
         setMode(RF69_MODE_RX);
+        _haveData = false;
     }
+    printf("Data not read?");
     RSSI = readRSSI(0);
 }
 unsigned char readReg(unsigned char addr)
