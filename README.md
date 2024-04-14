@@ -1,7 +1,12 @@
 # RFM69_RPi
 RFM69 library in C for Raspberry Pi
 
-## This library is currently untested
+## Forked from TheNogl
+I had to change the BITRATEMSB/LSB constants in the RFM69.c to make it work with my Raspberry Pi 4.
+Also added globals related to the received data extern in RFM69.h.
+Changed the example from the original.
+
+The wiring should still work as described below.
 
 ## Description
 
