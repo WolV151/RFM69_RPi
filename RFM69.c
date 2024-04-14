@@ -25,7 +25,7 @@ unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned cha
     _powerLevel = 31;
     _isRFM69HW = 0;
     _mode = RF69_MODE_RX;
-    _address;
+    //_address;
     _haveData = 0;
     PAYLOADLEN = 0;
     _intPin=intPin;
@@ -40,8 +40,8 @@ unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned cha
     {
         /* 0x01 */ { REG_OPMODE, RF_OPMODE_SEQUENCER_ON | RF_OPMODE_LISTEN_OFF | RF_OPMODE_STANDBY },
         /* 0x02 */ { REG_DATAMODUL, RF_DATAMODUL_DATAMODE_PACKET | RF_DATAMODUL_MODULATIONTYPE_FSK | RF_DATAMODUL_MODULATIONSHAPING_00 }, // no shaping
-        /* 0x03 */ { REG_BITRATEMSB, RF_BITRATEMSB_50000}, // default: 4.8 KBPS
-        /* 0x04 */ { REG_BITRATELSB, RF_BITRATELSB_50000},
+        /* 0x03 */ { REG_BITRATEMSB, RF_BITRATEMSB_55555}, // default: 4.8 KBPS
+        /* 0x04 */ { REG_BITRATELSB, RF_BITRATELSB_55555},
         /* 0x05 */ { REG_FDEVMSB, RF_FDEVMSB_50000}, // default: 5KHz, (FDEV + BitRate / 2 <= 500KHz)
         /* 0x06 */ { REG_FDEVLSB, RF_FDEVLSB_50000},
 
@@ -90,7 +90,7 @@ unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned cha
     for (unsigned char i = 0; CONFIG[i][0] != 255; i++)
         writeReg(CONFIG[i][0], CONFIG[i][1]);
     
-    encrypt(0);
+    set_encrypt_key(0);
 
     setHighPower(_isRFM69HW); // called regardless if it's a RFM69W or RFM69HW
     setMode(RF69_MODE_STANDBY);
@@ -100,7 +100,7 @@ unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned cha
         return false;
     wiringPiISR(intPin, INT_EDGE_RISING, isr0);
     _address = ID;
-    return true;
+    return 0;
 }
 void setAddress(unsigned short addr)
 {
@@ -204,12 +204,12 @@ void setFrequency(unsigned int freqHz)
     }
     setMode(oldMode);
 }
-void encrypt(const char* key)
+void set_encrypt_key(unsigned char* key)
 {
     setMode(RF69_MODE_STANDBY);
     if (key != 0)
     {
-        char data = REG_AESKEY1 | 0x80;
+        unsigned char data = REG_AESKEY1 | 0x80;
         wiringPiSPIDataRW(0, &data, 1);
         for (unsigned char i = 0; i < 16; i++)
             wiringPiSPIDataRW(0, &key[i], 1);
@@ -248,7 +248,7 @@ void setPowerLevel(unsigned char level) // reduce/increase transmit power level
     if (_isRFM69HW) _powerLevel /= 2;
     writeReg(REG_PALEVEL, (readReg(REG_PALEVEL) & 0xE0) | _powerLevel);
 }
-void sleep()
+void set_mode_sleep()
 {
     setMode(RF69_MODE_SLEEP);
 }
@@ -372,7 +372,7 @@ void interruptHandler()
         ACK_RECEIVED = CTLbyte & RFM69_CTL_SENDACK; // extract ACK-received flag
         ACK_REQUESTED = CTLbyte & RFM69_CTL_REQACK; // extract ACK-requested flag
 
-        for (unsigned char i = 0; i < DATALEN; i++) DATA[i] = data[i+3];
+        for (unsigned char i = 0; i < DATALEN; i++) DATA[i] = data[i+4];
 
         DATA[DATALEN] = 0; // add null at end of string
         setMode(RF69_MODE_RX);
@@ -388,7 +388,7 @@ unsigned char readReg(unsigned char addr)
 }
 void writeReg(unsigned char addr, unsigned char val)
 {
-    char data[2]={0};
+    unsigned char data[2]={0};
     data[0]=addr|0x80;
     data[1]=val;
     wiringPiSPIDataRW(0, data, 2);
@@ -396,6 +396,7 @@ void writeReg(unsigned char addr, unsigned char val)
 //void readAllRegs();
 void isr0()
 {
+    delay(75);
     if(_mode == RF69_MODE_RX)
         _haveData = true;
 }

@@ -31,33 +31,40 @@
 
 #define RFM69_ACK_TIMEOUT   30  // 30ms roundtrip req for 61byte packets
 
+extern unsigned char PAYLOADLEN;
+extern unsigned short SENDERID;
+extern unsigned short TARGETID;
+extern unsigned char DATALEN;
+extern short RSSI;
+extern unsigned char DATA[RF69_MAX_DATA_LEN+1];
+
 unsigned char initialize(unsigned char freqBand, unsigned short ID, unsigned char networkID, unsigned char intPin, unsigned char rstPin, unsigned char spiBus);
 void setAddress(unsigned short addr);
 void setNetwork(unsigned char networkID);
-bool canSend();
+bool canSend(void);
 void send(unsigned short toAddress, const void* buffer, unsigned char bufferSize, bool requestACK);
 bool sendWithRetry(unsigned short toAddress, const void* buffer, unsigned char bufferSize, unsigned char retries, unsigned char retryWaitTime);
-bool receiveDone();
+bool receiveDone(void);
 bool ACKReceived(unsigned short fromNodeID);
-bool ACKRequested();
+bool ACKRequested(void);
 void sendACK(const void* buffer, unsigned char bufferSize);
-int getFrequency(); //-------//
+int getFrequency(void); //-------//
 void setFrequency(unsigned int freqHz);
-void encrypt(const char* key);
+void set_encrypt_key(unsigned char* key);
 short readRSSI(bool forceTrigger); // *current* signal strength indicator; e.g. < -90dBm says the frequency channel is free + ready to transmit
 void spyMode(bool onOff); //-------//
 void setHighPower(bool onOFF); // has to be called after initialize() for RFM69HW
 void setPowerLevel(unsigned char level); // reduce/increase transmit power level
-void sleep();
+void set_mode_sleep(void);
 unsigned char readTemperature(unsigned char calFactor); // get CMOS temperature (8bit)
-void rcCalibration();
+void rcCalibration(void);
 void sendFrame(unsigned short toAddress, const void* buffer, unsigned char bufferSize, bool requestACK, bool sendACK);
-void receiveBegin();
+void receiveBegin(void);
 void setMode(unsigned char mode);
 void setHighPowerRegs(bool onOff);
-void interruptHandler();
+void interruptHandler(void);
 unsigned char readReg(unsigned char addr);
 void writeReg(unsigned char addr, unsigned char val);
 //void readAllRegs();
 //bool shutdown();
-void isr0();
+void isr0(void);
