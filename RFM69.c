@@ -207,14 +207,15 @@ void setFrequency(unsigned int freqHz)
 void set_encrypt_key(unsigned char* key)
 {
     setMode(RF69_MODE_STANDBY);
-    if (key != 0)
-    {
-        unsigned char data = REG_AESKEY1 | 0x80;
-        wiringPiSPIDataRW(0, &data, 1);
-        for (unsigned char i = 0; i < 16; i++)
-            wiringPiSPIDataRW(0, &key[i], 1);
+    if (key != 0) {
+        unsigned char buffer[17];
+        buffer[0] = REG_AESKEY1 | 0x80; // First byte is the register address
+        for (unsigned char i = 0; i < 16; i++) {
+            buffer[i + 1] = key[i]; // Following bytes are the key
+        }
+        wiringPiSPIDataRW(0, buffer, 17); // Send all at once
     }
-    writeReg(REG_PACKETCONFIG2, (readReg(REG_PACKETCONFIG2) & 0xFE) | (key ? 1 : 0));
+    writeReg(REG_PACKETCONFIG2, (readReg(REG_PACKETCONFIG2) & 0xFE) | (key ? RF_PACKET2_AES_ON : RF_PACKET2_AES_OFF));
 }
 short readRSSI(bool forceTrigger) // *current* signal strength indicator; e.g. < -90dBm says the frequency channel is free + ready to transmit
 {
